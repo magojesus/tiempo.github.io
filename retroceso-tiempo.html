@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Retroceso de tiempo</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f2f2f7;--card:#ffffff;--ink:#1c1c1e;--mute:#6c6c70;--line:#d1d1d6;--acc:#0a84ff;--field:#e9e9ee;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#1c1c1e;--card:#2c2c2e;--ink:#f2f2f7;--mute:#a1a1a6;--line:#48484a;--acc:#0a84ff;--field:#3a3a3c}
+}
+:root[data-theme="dark"]{--bg:#1c1c1e;--card:#2c2c2e;--ink:#f2f2f7;--mute:#a1a1a6;--line:#48484a;--acc:#0a84ff;--field:#3a3a3c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:#000;overscroll-behavior:none}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.hidden{display:none!important}
+
+/* ---------- Teléfono falso ---------- */
+#stage{height:100%;display:flex;align-items:center;justify-content:center}
+#phone{position:relative;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:none;--tc:#fff;--lcs:96px}
+#phone[data-ui="android"]{font-family:Roboto,"Google Sans","Segoe UI",Arial,sans-serif}
+@media (min-width:700px){
+  #phone{height:min(100%,860px);width:calc(min(100%,860px)*.462);border-radius:42px;box-shadow:0 0 0 9px #202024,0 24px 70px rgba(0,0,0,.65)}
+}
+.screen{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
+#lock{background-image:linear-gradient(165deg,#1b2b5a 0%,#2f4f9e 42%,#8a4a9c 100%)}
+#home{background-image:linear-gradient(165deg,#0e1f27 0%,#1f3d49 50%,#2d5a6b 100%)}
+
+.status{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:space-between;padding:10px 26px 0;color:var(--tc);font-size:16px;font-weight:600;z-index:2}
+.status .ic{display:flex;gap:6px;align-items:center}
+#phone[data-ui="android"] .status{font-size:14px;font-weight:500;padding:8px 20px 0}
+#home .status.r{flex-direction:row-reverse}
+
+.lockwrap{position:absolute;top:11%;left:0;right:0;text-align:center;color:var(--tc);text-shadow:0 1px 12px rgba(0,0,0,.18)}
+#lockDate{font-size:19px;font-weight:600;opacity:.92;letter-spacing:.1px}
+#lockClock{font-size:var(--lcs);font-weight:700;letter-spacing:-2px;line-height:1.02;font-variant-numeric:tabular-nums}
+#phone[data-ui="android"] #lockClock{font-weight:300;letter-spacing:-1px}
+.lbtn{position:absolute;bottom:52px;width:50px;height:50px;border-radius:50%;background:rgba(20,20,20,.38);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;color:#fff}
+#swipe{position:absolute;left:0;right:0;bottom:0;height:96px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8px;cursor:pointer}
+#swipe small{display:none;font-size:13px;opacity:.85;margin-bottom:14px;color:var(--tc)}
+#phone[data-ui="android"] #swipe small{display:block}
+.bar{width:136px;height:5px;border-radius:3px;background:var(--tc);opacity:.9}
+
+/* Teclado de código */
+#pin{background:rgba(0,0,0,.22);backdrop-filter:blur(30px) brightness(.55);-webkit-backdrop-filter:blur(30px) brightness(.55);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5}
+#pin h2{margin:0;font-size:19px;font-weight:500}
+.dots{display:flex;gap:18px;margin:20px 0 40px;height:14px}
+.dot{width:13px;height:13px;border:1.5px solid #fff;border-radius:50%}
+.dot.on{background:#fff}
+.keys{display:grid;grid-template-columns:repeat(3,var(--k));gap:16px 20px;--k:min(19vw,76px)}
+.key{width:var(--k);height:var(--k);border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0}
+.key:active{background:rgba(255,255,255,.55)}
+.key b{font-size:34px;font-weight:300;line-height:1}
+.key i{font-style:normal;font-size:9px;letter-spacing:2px;font-weight:600;margin-top:2px;height:10px}
+.txtkey{background:none!important;border:0;color:#fff;font:inherit;font-size:16px;height:var(--k);width:var(--k)}
+.k-empty{width:var(--k);height:var(--k);display:flex;align-items:center;justify-content:center;font-size:15px}
+
+/* Inicio */
+.grid{position:absolute;top:96px;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);row-gap:24px;padding:0 16px}
+.app{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;text-shadow:0 1px 3px rgba(0,0,0,.55);color:#fff}
+.ico{width:clamp(50px,15vw,62px);height:clamp(50px,15vw,62px);border-radius:22%;display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.cal{color:#1c1c1e;display:flex;flex-direction:column;align-items:center;line-height:1}
+.cal small{font-size:9px;font-weight:700;color:#ff3b30;margin-bottom:1px}
+.cal b{font-size:28px;font-weight:300}
+.dock{position:absolute;left:12px;right:12px;bottom:26px;height:88px;border-radius:32px;background:rgba(255,255,255,.24);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);display:flex;align-items:center;justify-content:space-around;padding:0 6px}
+.dock .app{font-size:0}
+#home .bar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%)}
+#home.shot .status,#home.shot .grid,#home.shot .dock,#home.shot .bar{display:none}
+#patch{position:absolute;display:none;align-items:center;justify-content:center;border-radius:8px;font-weight:600;font-variant-numeric:tabular-nums;z-index:3;overflow:visible;white-space:nowrap}
+#home.shot #patch{display:flex}
+body.menu-open #patch{outline:1px dashed #ffe600}
+
+/* Zonas secretas */
+#hot{position:absolute;top:0;left:0;width:76px;height:58px;z-index:20}
+#hot2{position:absolute;top:0;right:0;width:76px;height:58px;z-index:20}
+
+/* ---------- Menú secreto ---------- */
+#menu{position:fixed;inset:0;z-index:50;pointer-events:none}
+.sheet{pointer-events:auto;position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,560px);max-height:60%;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.35)}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-size:17px}
+.sheet-body{overflow:auto;-webkit-overflow-scrolling:touch;padding:6px 14px 30px;touch-action:pan-y}
+.sheet section{background:var(--card);border-radius:14px;padding:12px 14px;margin-top:12px}
+.sheet h3{margin:0 0 8px;font-size:15px;font-weight:650}
+.sheet p{margin:6px 0;font-size:13px;line-height:1.45;color:var(--mute)}
+.sheet label{display:block;font-size:14px;margin:12px 0 4px}
+.sheet label span{float:right;color:var(--mute);font-variant-numeric:tabular-nums}
+.sheet input[type=range]{width:100%;accent-color:var(--acc)}
+.sheet select,.sheet input[type=number]{width:100%;padding:10px;border-radius:10px;border:0;background:var(--field);color:var(--ink);font-size:15px}
+.sheet input[type=color]{width:46px;height:34px;border:0;padding:0;background:none}
+.row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:10px 14px;background:var(--acc);color:#fff;font-size:14px;font-weight:600;font-family:inherit}
+.btn.sec{background:var(--field);color:var(--ink)}
+.btn:disabled{opacity:.4}
+.link{background:none;border:0;color:var(--acc);font-size:15px;font-weight:600;font-family:inherit}
+.lib{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.tile{position:relative;aspect-ratio:9/16;border-radius:10px;border:2px solid transparent;background:var(--field) center/cover no-repeat;padding:0;color:var(--ink);font-size:11px;overflow:hidden}
+.tile.sel{border-color:var(--acc)}
+.tile em{position:absolute;left:3px;bottom:3px;font-style:normal;font-size:13px;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 3px}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.slot{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.slot .btn{width:100%}
+.thumb{aspect-ratio:9/16;border-radius:12px;background:var(--field) center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mute);border:1px solid var(--line)}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;margin-top:8px}
+.check input{width:20px;height:20px;accent-color:var(--acc)}
+
+#help{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--card);color:var(--ink);border-radius:18px;padding:20px;max-width:440px;max-height:88%;overflow:auto}
+.card h2{margin:0 0 10px;font-size:19px}
+.card p,.card li{font-size:14px;line-height:1.5}
+.card ul{padding-left:20px;margin:8px 0}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:#000c;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;max-width:88%;text-align:center}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="phone" data-ui="ios">
+    <div id="hot"></div><div id="hot2"></div>
+
+    <!-- Pantalla de bloqueo -->
+    <div id="lock" class="screen">
+      <div class="status"><span></span><span class="ic" id="lockIcons"></span></div>
+      <div class="lockwrap"><div id="lockDate"></div><div id="lockClock">12:00</div></div>
+      <div class="lbtn" style="left:44px"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h10v3l-2 3v14a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V8L7 5V2zm5 8a1.400 1.400 0 0 0-1.400 1.400v2a1.400 1.400 0 0 0 2.800 0v-2A1.400 1.400 0 0 0 12 10z"/></svg></div>
+      <div class="lbtn" style="right:44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M9 4l-1.500 2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.500L15 4H9zm3 4.500A4.500 4.500 0 1 1 7.500 13 4.500 4.500 0 0 1 12 8.500zm0 2A2.500 2.500 0 1 0 14.500 13 2.500 2.500 0 0 0 12 10.500z"/></svg></div>
+      <div id="swipe"><small>Desliza hacia arriba para desbloquear</small><div class="bar"></div></div>
+    </div>
+
+    <!-- Teclado de código -->
+    <div id="pin" class="screen hidden">
+      <h2>Introducir código</h2>
+      <div class="dots" id="dots"></div>
+      <div class="keys" id="keys"></div>
+    </div>
+
+    <!-- Pantalla de inicio -->
+    <div id="home" class="screen hidden">
+      <div class="status"><span id="sbTime">12:00</span><span class="ic" id="homeIcons"></span></div>
+      <div class="grid" id="grid"></div>
+      <div class="dock" id="dock"></div>
+      <div class="bar"></div>
+      <div id="patch"><span id="patchTime">12:00</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Menú secreto -->
+<div id="menu" class="hidden">
+  <div class="sheet">
+    <div class="sheet-head"><b>Menú secreto</b><button class="link" id="mClose">Cerrar</button></div>
+    <div class="sheet-body">
+
+      <section>
+        <h3>El truco</h3>
+        <label>Espera antes de empezar a retroceder <span id="vdelay"></span></label>
+        <input type="range" id="delay" min="1" max="60" step="1">
+        <label>Velocidad: segundos por cada minuto que baja <span id="vstep"></span></label>
+        <input type="range" id="step" min="0.2" max="5" step="0.1">
+        <label>Cómo se lee el código secreto</label>
+        <select id="codeMode">
+          <option value="last2">Los 2 últimos dígitos (4712 = 12 min)</option>
+          <option value="last1">Solo el último dígito (4729 = 9 min)</option>
+          <option value="full">Todo el número (0012 = 12 min)</option>
+        </select>
+        <label>Largo del código</label>
+        <select id="digits"><option value="4">4 dígitos</option><option value="6">6 dígitos</option></select>
+        <div class="row">
+          <input type="number" id="testMin" min="0" max="999" value="7" style="width:90px">
+          <button class="btn" id="btnTest">Probar con estos minutos</button>
+        </div>
+      </section>
+
+      <section>
+        <h3>Fotos y fondos</h3>
+        <p>Sube una foto para cada pantalla. Para el bloqueo usa una foto normal (sin reloj). Para el inicio puedes subir una captura de tu pantalla real.</p>
+        <div class="slots">
+          <div class="slot">
+            <div class="thumb" id="thLock"></div>
+            <b>Pantalla de bloqueo</b>
+            <button class="btn" id="upLock">Subir foto</button>
+            <button class="btn sec" id="rmLock">Quitar</button>
+            <input type="file" id="fileLock" accept="image/*" hidden>
+          </div>
+          <div class="slot">
+            <div class="thumb" id="thHome"></div>
+            <b>Pantalla de inicio</b>
+            <button class="btn" id="upHome">Subir foto</button>
+            <button class="btn sec" id="rmHome">Quitar</button>
+            <input type="file" id="fileHome" accept="image/*" hidden>
+          </div>
+        </div>
+        <div class="check"><input type="checkbox" id="isShot"><label for="isShot" style="margin:0">La foto de inicio es una captura de mi pantalla (con íconos)</label></div>
+        <div id="shotBox" class="hidden">
+          <p>Un parche tapa la hora original de la captura y dibuja la hora del truco. Con el menú abierto lo ves con borde amarillo arriba: muévelo hasta que coincida.</p>
+          <label>Posición horizontal <span id="vpx"></span></label><input type="range" id="px" min="0" max="90" step="0.5">
+          <label>Posición vertical <span id="vpy"></span></label><input type="range" id="py" min="0" max="12" step="0.1">
+          <label>Ancho del parche <span id="vpw"></span></label><input type="range" id="pw" min="5" max="50" step="0.5">
+          <label>Alto del parche <span id="vph"></span></label><input type="range" id="ph" min="2" max="10" step="0.1">
+          <label>Tamaño de la hora <span id="vpsize"></span></label><input type="range" id="psize" min="10" max="30" step="0.5">
+          <div class="row">
+            <span style="font-size:14px">Color de la hora</span><input type="color" id="pcolor">
+            <span style="font-size:14px">Color del parche</span><input type="color" id="pbg">
+            <button class="btn sec" id="pbgAuto">Automático</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3>Apariencia</h3>
+        <label>Estilo de teléfono</label>
+        <select id="ui"><option value="ios">iPhone</option><option value="android">Android</option></select>
+        <label>Lado de la hora en la pantalla de inicio</label>
+        <select id="timeSide"><option value="right">Esquina derecha</option><option value="left">Esquina izquierda</option></select>
+        <label>Formato de hora</label>
+        <select id="fmt"><option value="24">24 horas (13:05)</option><option value="12">12 horas (1:05)</option></select>
+        <label>Color de textos e íconos</label>
+        <select id="tc"><option value="#ffffff">Blanco</option><option value="#000000">Negro</option></select>
+        <label>Tamaño del reloj del bloqueo <span id="vlcs"></span></label>
+        <input type="range" id="lcs" min="60" max="130" step="1">
+      </section>
+
+      <section>
+        <h3>Acciones</h3>
+        <div class="row">
+          <button class="btn" id="btnRelock">Bloquear de nuevo</button>
+          <button class="btn sec" id="btnFull">Pantalla completa</button>
+          <button class="btn sec" id="btnHelp">Instrucciones</button>
+          <button class="btn sec" id="btnReset">Restablecer ajustes</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="help" class="hidden">
+  <div class="card">
+    <h2>Cómo se usa</h2>
+    <ul>
+      <li><b>Abrir este menú:</b> toca 5 veces rápido la esquina superior izquierda de la pantalla (lo puedes hacer en el bloqueo o en el inicio).</li>
+      <li><b>Código secreto:</b> desliza hacia arriba y escribe el código. Por defecto los 2 últimos dígitos son los minutos que se adelanta la hora. Ejemplo: <b>4707</b> muestra la hora real +7 min y luego baja de a uno. Cualquier código desbloquea; <b>0000</b> no adelanta nada.</li>
+      <li><b>Bloquear de nuevo:</b> toca 3 veces rápido la esquina superior derecha desde la pantalla de inicio.</li>
+      <li><b>Android:</b> en el menú usa “Pantalla completa”.</li>
+      <li><b>iPhone:</b> en Safari toca Compartir y luego “Añadir a pantalla de inicio”, y ábrela desde ese ícono.</li>
+      <li>Tus fotos se guardan solo en este teléfono.</li>
+    </ul>
+    <p>Aviso: en iPhone el sistema siempre muestra su barra con la hora real arriba, y una web no puede taparla. En Android la pantalla completa la oculta.</p>
+    <div class="row"><button class="btn" id="helpOk">Entendido</button></div>
+  </div>
+</div>
+<div id="toast" class="hidden"></div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const phone=$('phone'),lock=$('lock'),pin=$('pin'),home=$('home'),menu=$('menu'),help=$('help');
+
+/* ---------- Ajustes ---------- */
+const DEF={delay:10,step:1,codeMode:'last2',digits:4,ui:'ios',fmt24:true,tc:'#ffffff',lcs:96,timeSide:'right',
+  lockPhoto:null,homePhoto:null,isShot:false,seenHelp:false,
+  patch:{x:75,y:1.4,w:16,h:4,size:17,color:'#ffffff',bg:''}};
+let S=loadS();
+function loadS(){
+  try{const j=localStorage.getItem('tb_s');if(j){const o=JSON.parse(j);return {...DEF,...o,patch:{...DEF.patch,...(o.patch||{})}}}}catch(e){}
+  return JSON.parse(JSON.stringify(DEF));
+}
+function saveS(){try{localStorage.setItem('tb_s',JSON.stringify(S))}catch(e){}}
+function toast(msg,ms=2600){const t=$('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.add('hidden'),ms)}
+
+/* ---------- Íconos ---------- */
+const SIG='<svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx=".8"/><rect x="5" y="5.500" width="3" height="6.500" rx=".8"/><rect x="10" y="3" width="3" height="9" rx=".8"/><rect x="15" y="0" width="3" height="12" rx=".8"/></svg>';
+const WIFI='<svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"><path d="M1.500 4.200a10 10 0 0 1 14 0"/><path d="M4 7a6.400 6.400 0 0 1 9 0"/><circle cx="8.500" cy="10" r=".8" fill="currentColor"/></svg>';
+const BAT='<svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.500" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor"/><path d="M24.500 4.500v4c.8-.3 1.500-1.100 1.500-2s-.7-1.700-1.500-2z" fill="currentColor" opacity=".5"/></svg>';
+$('lockIcons').innerHTML=SIG+WIFI+BAT;$('homeIcons').innerHTML=SIG+WIFI+BAT;
+
+/* ---------- Íconos de apps por defecto ---------- */
+const DAYS=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+const APPS=[['Calendario','cal','#ffffff,#f0f0f0'],['Fotos','🌸','#ffffff,#eeeeee'],['Mapas','🗺️','#7fd6ff,#3aa6e6'],['Clima','⛅','#5aa9ff,#2f6fe0'],
+['Reloj','🕒','#2a2a2c,#000000'],['Notas','📝','#ffe066,#ffc400'],['Correo','✉️','#5eb3ff,#1a73e8'],['Música','🎵','#ff5a7a,#ff2d55'],
+['Tienda','🅰️','#3aa0ff,#0a63e0'],['Ajustes','⚙️','#a5a5aa,#68686e'],['Contactos','👤','#b59a78,#8a6f4d'],['Archivos','📁','#5eb3ff,#2f80ed'],
+['Calculadora','🧮','#ffb040,#ff8c00'],['Salud','❤️','#ffffff,#f2f2f2'],['Podcasts','🎙️','#c77dff,#8e3ff0'],['Billetera','💳','#3a3a3c,#111111']];
+const DOCK=[['Teléfono','📞','#5be27a,#22b04a'],['Navegador','🌐','#5eb3ff,#1a73e8'],['Mensajes','💬','#5be27a,#22b04a'],['Cámara','📷','#a5a5aa,#48484a']];
+function appHTML([n,e,c]){
+  const [a,b]=c.split(',');
+  let inner=e;
+  if(e==='cal'){const d=new Date();inner=`<div class="cal"><small>${DAYS[d.getDay()]}</small><b>${d.getDate()}</b></div>`}
+  return `<div class="app"><div class="ico" style="background:linear-gradient(160deg,${a},${b})">${inner}</div>${n}</div>`;
+}
+$('grid').innerHTML=APPS.map(appHTML).join('');
+$('dock').innerHTML=DOCK.map(appHTML).join('');
+
+/* ---------- Reloj ---------- */
+let remaining=0,tDelay=null,tInt=null;
+function fmt(d){
+  const h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0');
+  return (S.fmt24?String(h).padStart(2,'0'):String(h%12||12))+':'+m;
+}
+function dateStr(d){
+  let s=new Intl.DateTimeFormat('es-AR',{weekday:'long',day:'numeric',month:'long'}).format(d).replace(',','');
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+function renderClock(){
+  const now=Date.now(),real=new Date(now),fake=new Date(now+remaining*60000);
+  $('lockClock').textContent=fmt(real);$('lockDate').textContent=dateStr(real);
+  const f=fmt(fake);$('sbTime').textContent=f;$('patchTime').textContent=f;
+}
+setInterval(renderClock,500);
+
+/* ---------- Fotos (IndexedDB) ---------- */
+let photos=[],selId=null;
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('tb_photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('p',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function dbAll(){const db=await idb();return new Promise((res,rej)=>{const q=db.transaction('p').objectStore('p').getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
+async function dbPut(o){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('p','readwrite');t.objectStore('p').put(o);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+async function dbDel(id){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('p','readwrite');t.objectStore('p').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+const urlOf=id=>{const p=photos.find(x=>x.id===id);return p?p.url:null};
+
+async function initPhotos(){
+  try{const all=await dbAll();all.sort((a,b)=>a.id<b.id?-1:1);photos=all.map(o=>({id:o.id,name:o.name,url:URL.createObjectURL(o.blob)}))}catch(e){}
+  if(S.lockPhoto&&!urlOf(S.lockPhoto))S.lockPhoto=null;
+  if(S.homePhoto&&!urlOf(S.homePhoto))S.homePhoto=null;
+  renderLib();applyBg();
+}
+async function toBlob(file){
+  let bmp;
+  try{bmp=await createImageBitmap(file,{imageOrientation:'from-image'})}
+  catch(e){bmp=await new Promise((res,rej)=>{const i=new Image(),u=URL.createObjectURL(file);i.onload=()=>res(i);i.onerror=rej;i.src=u})}
+  const w=bmp.width||bmp.naturalWidth,h=bmp.height||bmp.naturalHeight,sc=Math.min(1,1800/Math.max(w,h));
+  const c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);
+  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+  return new Promise(r=>c.toBlob(r,'image/jpeg',0.9));
+}
+function dropIfUnused(id){
+  if(id&&id!==S.lockPhoto&&id!==S.homePhoto){photos=photos.filter(p=>p.id!==id);dbDel(id).catch(()=>{})}
+}
+function setupSlot(kind){
+  const K=kind==='lock'?'Lock':'Home',key=kind==='lock'?'lockPhoto':'homePhoto',inp=$('file'+K);
+  $('up'+K).onclick=()=>inp.click();
+  $('rm'+K).onclick=()=>{const old=S[key];S[key]=null;dropIfUnused(old);commit();renderLib()};
+  inp.onchange=async e=>{
+    const f=e.target.files[0];e.target.value='';if(!f)return;
+    toast('Procesando foto…',8000);
+    try{
+      const blob=await toBlob(f);
+      const id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+      const old=S[key];
+      photos.push({id,name:f.name,url:URL.createObjectURL(blob)});
+      S[key]=id;
+      let ok=true;try{await dbPut({id,name:f.name,blob})}catch(er){ok=false}
+      dropIfUnused(old);
+      commit();renderLib();
+      toast(ok?'Foto guardada en este teléfono.':'La foto se usa ahora, pero no se pudo guardar para la próxima vez.',3200);
+    }catch(er){toast('No se pudo leer la foto.')}
+  };
+}
+setupSlot('lock');setupSlot('home');
+function renderLib(){
+  [['Lock',S.lockPhoto],['Home',S.homePhoto]].forEach(([K,id])=>{
+    const u=urlOf(id),t=$('th'+K);
+    t.style.backgroundImage=u?`url("${u}")`:'';t.textContent=u?'':'Fondo por defecto';
+    $('rm'+K).disabled=!u;$('up'+K).textContent=u?'Cambiar foto':'Subir foto';
+  });
+}
+function applyBg(){
+  const l=urlOf(S.lockPhoto),h=urlOf(S.homePhoto);
+  lock.style.backgroundImage=l?`url("${l}")`:'';
+  home.style.backgroundImage=h?`url("${h}")`:'';
+  home.classList.toggle('shot',!!(S.isShot&&h));
+}
+
+/* ---------- Parche de hora (captura) ---------- */
+const imgCache={};
+const loadImg=u=>imgCache[u]||(imgCache[u]=new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=u}));
+let patchTok=0;
+async function applyPatch(){
+  const p=S.patch,el=$('patch'),tok=++patchTok;
+  Object.assign(el.style,{left:p.x+'%',top:p.y+'%',width:p.w+'%',height:p.h+'%',color:p.color});
+  $('patchTime').style.fontSize=p.size+'px';
+  if(p.bg){el.style.background=p.bg;el.style.boxShadow=`0 0 6px 3px ${p.bg}`;return}
+  const url=urlOf(S.homePhoto);if(!url||!S.isShot)return;
+  try{
+    const img=await loadImg(url);if(tok!==patchTok)return;
+    const W=phone.clientWidth,H=phone.clientHeight;if(!W||!H)return;
+    const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+    const s=Math.max(W/img.width,H/img.height),dw=img.width*s,dh=img.height*s;
+    g.drawImage(img,(W-dw)/2,(H-dh)/2,dw,dh);
+    const px=p.x/100*W,py=p.y/100*H,pw=p.w/100*W,ph=p.h/100*H;
+    const pt=(x,y)=>{const d=g.getImageData(Math.max(0,Math.min(W-1,Math.round(x))),Math.max(0,Math.min(H-1,Math.round(y))),1,1).data;return `rgb(${d[0]},${d[1]},${d[2]})`};
+    const l=pt(px-5,py+ph/2),r=pt(px+pw+5,py+ph/2);
+    el.style.background=`linear-gradient(90deg,${l},${r})`;el.style.boxShadow=`0 0 6px 3px ${l}`;
+  }catch(e){}
+}
+
+/* ---------- Aplicar ajustes ---------- */
+function applyUI(){
+  phone.dataset.ui=S.ui;phone.style.setProperty('--tc',S.tc);phone.style.setProperty('--lcs',S.lcs+'px');
+  $('shotBox').classList.toggle('hidden',!S.isShot);
+  document.querySelector('#home .status').classList.toggle('r',S.timeSide==='right');
+}
+function commit(){saveS();applyUI();applyBg();applyPatch();renderClock();renderDots()}
+
+/* ---------- Teclado de código ---------- */
+let code='';
+const LET={2:'ABC',3:'DEF',4:'GHI',5:'JKL',6:'MNO',7:'PQRS',8:'TUV',9:'WXYZ'};
+(function buildKeys(){
+  const k=$('keys');let h='';
+  for(let d=1;d<=9;d++)h+=`<button class="key" data-d="${d}"><b>${d}</b><i>${LET[d]||''}</i></button>`;
+  h+=`<div class="k-empty">Emergencia</div><button class="key" data-d="0"><b>0</b><i></i></button><button class="txtkey" id="kCancel">Cancelar</button>`;
+  k.innerHTML=h;
+  k.querySelectorAll('.key').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();press(b.dataset.d)}));
+  $('kCancel').addEventListener('pointerdown',e=>{e.preventDefault();if(code.length){code=code.slice(0,-1);renderDots()}else{pin.classList.add('hidden')}});
+})();
+function renderDots(){
+  $('dots').innerHTML=Array.from({length:S.digits},(_,i)=>`<div class="dot${i<code.length?' on':''}"></div>`).join('');
+  $('kCancel').textContent=code.length?'Borrar':'Cancelar';
+}
+function press(d){
+  if(code.length>=S.digits)return;
+  code+=d;renderDots();
+  if(code.length===S.digits)setTimeout(()=>{
+    const m=parseMinutes(code);code='';renderDots();showHome(m);
+  },160);
+}
+function parseMinutes(c){
+  const s=S.codeMode==='full'?c:S.codeMode==='last2'?c.slice(-2):c.slice(-1);
+  return Math.min(parseInt(s,10)||0,999);
+}
+
+/* ---------- Flujo ---------- */
+function clearTimers(){clearTimeout(tDelay);clearInterval(tInt)}
+function tick(){
+  if(remaining>0){remaining--;renderClock()}
+  if(remaining<=0)clearInterval(tInt);
+}
+function showHome(m){
+  clearTimers();remaining=m;
+  lock.classList.add('hidden');pin.classList.add('hidden');home.classList.remove('hidden');
+  applyBg();applyPatch();renderClock();keepAwake();
+  if(m>0)tDelay=setTimeout(()=>{tick();tInt=setInterval(tick,Math.max(200,S.step*1000))},S.delay*1000);
+}
+function relock(){
+  clearTimers();remaining=0;code='';renderDots();
+  home.classList.add('hidden');pin.classList.add('hidden');lock.classList.remove('hidden');renderClock();
+}
+let wl=null;
+async function keepAwake(){try{if('wakeLock' in navigator)wl=await navigator.wakeLock.request('screen')}catch(e){}}
+
+/* Deslizar hacia arriba en el bloqueo */
+let sy=null;
+lock.addEventListener('pointerdown',e=>{sy=e.clientY});
+lock.addEventListener('pointerup',e=>{if(sy!==null&&sy-e.clientY>45)openPin();sy=null});
+$('swipe').addEventListener('click',openPin);
+function openPin(){code='';renderDots();pin.classList.remove('hidden')}
+
+/* Zonas secretas */
+let taps=[],taps2=[];
+$('hot').addEventListener('pointerdown',e=>{
+  e.stopPropagation();const t=Date.now();taps=taps.filter(x=>t-x<2500);taps.push(t);
+  if(taps.length>=5){taps=[];openMenu()}
+});
+$('hot2').addEventListener('pointerdown',e=>{
+  e.stopPropagation();if(home.classList.contains('hidden'))return;
+  const t=Date.now();taps2=taps2.filter(x=>t-x<1600);taps2.push(t);
+  if(taps2.length>=3){taps2=[];relock()}
+});
+
+/* ---------- Menú ---------- */
+function openMenu(){menu.classList.remove('hidden');document.body.classList.add('menu-open');syncMenu()}
+function closeMenu(){menu.classList.add('hidden');document.body.classList.remove('menu-open')}
+$('mClose').onclick=closeMenu;
+const RANGES=[['delay','delay',' s'],['step','step',' s'],['lcs','lcs',' px'],['px','x',' %','patch'],['py','y',' %','patch'],['pw','w',' %','patch'],['ph','h',' %','patch'],['psize','size',' px','patch']];
+RANGES.forEach(([id,key,suf,par])=>{
+  const el=$(id),tgt=()=>par?S[par]:S;
+  el.addEventListener('input',()=>{tgt()[key]=parseFloat(el.value);$('v'+id).textContent=el.value+suf;commit()});
+});
+const SELECTS=[['codeMode',v=>v,'codeMode'],['digits',Number,'digits'],['ui',v=>v,'ui'],['tc',v=>v,'tc']];
+SELECTS.forEach(([id,cv,key])=>$(id).addEventListener('change',e=>{S[key]=cv(e.target.value);commit()}));
+$('fmt').addEventListener('change',e=>{S.fmt24=e.target.value==='24';commit()});
+$('timeSide').addEventListener('change',e=>{
+  S.timeSide=e.target.value;
+  S.patch.x=Math.max(0,Math.min(90,Math.round((100-S.patch.x-S.patch.w)*2)/2));
+  commit();syncMenu();
+});
+$('isShot').addEventListener('change',e=>{S.isShot=e.target.checked;commit()});
+$('pcolor').addEventListener('input',e=>{S.patch.color=e.target.value;commit()});
+$('pbg').addEventListener('input',e=>{S.patch.bg=e.target.value;commit()});
+$('pbgAuto').onclick=()=>{S.patch.bg='';commit()};
+function syncMenu(){
+  RANGES.forEach(([id,key,suf,par])=>{const v=(par?S[par]:S)[key];$(id).value=v;$('v'+id).textContent=v+suf});
+  $('codeMode').value=S.codeMode;$('digits').value=String(S.digits);$('ui').value=S.ui;$('tc').value=S.tc;
+  $('fmt').value=S.fmt24?'24':'12';$('timeSide').value=S.timeSide;$('isShot').checked=S.isShot;
+  $('pcolor').value=S.patch.color;$('pbg').value=S.patch.bg||'#000000';
+  renderLib();
+}
+$('btnTest').onclick=()=>{const m=Math.max(0,Math.min(999,parseInt($('testMin').value,10)||0));showHome(m)};
+$('btnRelock').onclick=()=>{relock();closeMenu()};
+$('btnFull').onclick=async()=>{
+  try{await document.documentElement.requestFullscreen();closeMenu()}
+  catch(e){toast('Este navegador no permite pantalla completa. En iPhone usa “Añadir a pantalla de inicio”.',4500)}
+};
+$('btnHelp').onclick=()=>help.classList.remove('hidden');
+$('helpOk').onclick=()=>{help.classList.add('hidden');S.seenHelp=true;saveS()};
+let armed=false,armT;
+$('btnReset').onclick=function(){
+  if(!armed){armed=true;this.textContent='¿Seguro? Toca otra vez';armT=setTimeout(()=>{armed=false;this.textContent='Restablecer ajustes'},3000)}
+  else{clearTimeout(armT);armed=false;this.textContent='Restablecer ajustes';S=JSON.parse(JSON.stringify(DEF));S.seenHelp=true;commit();syncMenu();toast('Ajustes restablecidos (las fotos siguen guardadas).')}
+};
+
+/* ---------- Inicio ---------- */
+applyUI();renderDots();renderClock();initPhotos();
+if(!S.seenHelp)help.classList.remove('hidden');
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!home.classList.contains('hidden'))keepAwake()});
+})();
+</script>
+</body>
+</html>
