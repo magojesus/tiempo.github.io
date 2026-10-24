@@ -1,0 +1,357 @@
+<title>Mentalia</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: pantalla de celular estilo iOS (home 4x6 + app de notas) a pantalla completa.
+   Los 10 dígitos van escondidos en el globo de notificación de cada app (nº = dígito; sin globo = 0),
+   en posición de teclado telefónico. Dos pantallas con apps distintas. Íconos en SVG. */
+:root{
+  --wall1:#2b2440; --wall2:#141021; --wall3:#0a0712;
+  --ink:#ffffff; --dock:rgba(255,255,255,.14);
+  --note-bg:#1c1c1e; --note-card:#2c2c2e; --note-ink:#f2f2f7; --note-dim:#9a9aa0;
+  --note-yellow:#f8c23b; --sep:rgba(255,255,255,.08); --accent:#f8c23b;
+  --f-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color-scheme: dark;
+}
+html,body{height:100%;}
+body{margin:0;background:var(--wall3);font-family:var(--f-ui);-webkit-font-smoothing:antialiased;overflow:hidden;color:var(--ink);}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+#phone{position:relative;height:100%;width:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(130% 100% at 50% 0%,var(--wall1) 0%,var(--wall2) 48%,var(--wall3) 100%);}
+
+#statusbar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:max(10px,env(safe-area-inset-top,0px)) 24px 4px;font-size:15px;font-weight:600;letter-spacing:.3px;user-select:none;position:relative;z-index:5;}
+#clock{min-width:54px;padding:4px 6px;margin:-4px -6px;border-radius:8px;cursor:default;}
+.sb-right{display:flex;align-items:center;gap:6px;font-size:13px;}
+.sb-bars{display:inline-flex;align-items:flex-end;gap:2px;height:12px;}
+.sb-bars i{width:3px;background:var(--ink);border-radius:1px;display:inline-block;}
+.sb-bars i:nth-child(1){height:5px}.sb-bars i:nth-child(2){height:7px}.sb-bars i:nth-child(3){height:9px}.sb-bars i:nth-child(4){height:12px}
+.batt{width:24px;height:12px;border:1.3px solid var(--ink);border-radius:3px;position:relative;opacity:.9}
+.batt::after{content:"";position:absolute;right:-3px;top:3px;height:6px;width:2px;background:var(--ink);border-radius:0 1px 1px 0}
+.batt::before{content:"";position:absolute;left:1.3px;top:1.3px;bottom:1.3px;width:70%;background:var(--ink);border-radius:1px}
+
+#pager{flex:1 1 auto;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;}
+#pager::-webkit-scrollbar{display:none;}
+.page{flex:0 0 100%;scroll-snap-align:center;height:100%;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;
+  padding:12px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px));}
+.page::-webkit-scrollbar{display:none;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(6,auto);gap:15px 8px;align-content:start;margin-top:6px;}
+.app{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;user-select:none;}
+.iconwrap{position:relative;width:56px;height:56px;}
+.iconwrap .ico{width:56px;height:56px;border-radius:13px;overflow:hidden;position:relative;display:grid;place-items:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.35),inset 0 0 0 .5px rgba(0,0,0,.06);transition:transform .12s ease;}
+.app.tapped .ico{transform:scale(.86);}
+.ico svg{display:block;}
+.badge{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;padding:0 4px;background:#ff3b30;color:#fff;
+  border-radius:10px;font-size:11.5px;font-weight:700;line-height:19px;text-align:center;box-shadow:0 0 0 1.5px rgba(10,7,18,.9);}
+.app .lbl{font-size:11px;color:var(--ink);text-shadow:0 1px 2px rgba(0,0,0,.5);max-width:70px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+#dots{flex:0 0 auto;display:flex;justify-content:center;gap:7px;padding:4px 0 6px;}
+#dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .2s;}
+#dots span.on{background:#fff;}
+
+#dock{flex:0 0 auto;margin:2px max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
+  background:var(--dock);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:28px;padding:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;justify-items:center;}
+#dock .app .lbl{display:none;}
+
+#notesApp{position:absolute;inset:0;z-index:40;background:var(--note-bg);color:var(--note-ink);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,.1,.2,1);}
+#notesApp.open{transform:translateX(0);}
+.note-status{display:flex;align-items:center;justify-content:space-between;padding:max(10px,env(safe-area-inset-top,0px)) 24px 4px;font-size:15px;font-weight:600;color:var(--note-ink);}
+.note-head{padding:4px max(18px,env(safe-area-inset-left,0px)) 10px;position:relative;}
+.note-top{display:flex;align-items:center;justify-content:space-between;min-height:30px;}
+.note-back{display:flex;align-items:center;gap:3px;color:var(--note-yellow);font-size:17px;cursor:pointer;background:none;border:0;padding:6px 8px 6px 0;font-family:inherit;}
+.note-back svg{width:13px;height:21px;}
+.note-title{font-size:30px;font-weight:800;letter-spacing:-.4px;margin:6px 2px 10px;text-wrap:balance;}
+.search{display:flex;align-items:center;gap:8px;background:var(--note-card);border-radius:11px;padding:9px 12px;color:var(--note-dim);margin:0 2px;}
+.search svg{width:15px;height:15px;opacity:.7}
+.search input{flex:1;background:none;border:0;outline:0;color:var(--note-ink);font-size:16px;font-family:inherit;}
+.search input::placeholder{color:var(--note-dim);}
+.note-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px max(14px,env(safe-area-inset-left,0px)) max(20px,env(safe-area-inset-bottom,0px));}
+.note-card{background:var(--note-card);border-radius:12px;overflow:hidden;}
+.folder-row{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;border-bottom:1px solid var(--sep);}
+.folder-row:last-child{border-bottom:0;}
+.folder-row .fi{font-size:20px;width:26px;text-align:center;color:var(--note-yellow);}
+.folder-row .fn{flex:1;font-size:17px;}
+.folder-row .cnt{color:var(--note-dim);font-size:15px;}
+.folder-row .chev{color:var(--note-dim);font-size:18px;}
+.item-row{display:flex;align-items:baseline;gap:12px;padding:12px 14px;border-bottom:1px solid var(--sep);font-size:17px;}
+.item-row:last-child{border-bottom:0;}
+.item-row .num{color:var(--note-dim);font-variant-numeric:tabular-nums;min-width:30px;text-align:right;font-size:15px;}
+.item-row .val{flex:1;min-width:0;}
+.note-meta{color:var(--note-dim);font-size:13px;text-align:center;padding:14px 0 4px;}
+
+#settings{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;}
+#settings .sheet{width:100%;max-width:520px;max-height:92%;overflow-y:auto;background:#1c1c1e;color:#f2f2f7;border-radius:20px 20px 0 0;padding:10px max(18px,env(safe-area-inset-left,0px)) max(24px,env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(0,0,0,.5);}
+.sheet .grip{width:38px;height:5px;border-radius:3px;background:#48484a;margin:6px auto 12px;}
+.sheet h2{font-size:21px;margin:4px 2px 2px;font-weight:800;letter-spacing:-.3px;}
+.sheet .sub{color:var(--note-dim);font-size:13.5px;margin:0 2px 14px;line-height:1.5;}
+.sheet h3{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--note-dim);margin:18px 4px 7px;}
+.field{display:flex;align-items:center;gap:10px;background:#2c2c2e;border:1px solid #4a4a4e;border-radius:11px;padding:10px 12px;margin-bottom:8px;}
+.field .k{font-size:13px;width:110px;color:var(--note-dim);flex:0 0 auto;}
+.field input{flex:1;min-width:0;background:none;border:0;outline:0;color:#fff;font-size:16px;font-family:inherit;}
+.field input::placeholder{color:#8e8e93;}
+.code-box{display:flex;align-items:center;justify-content:space-between;background:#2c2c2e;border-radius:11px;padding:12px 14px;margin-bottom:8px;}
+.code-box b{font-size:17px;font-variant-numeric:tabular-nums;}
+.btn{display:block;width:100%;text-align:center;border:0;border-radius:12px;padding:13px;font-size:16px;font-family:inherit;font-weight:600;cursor:pointer;margin-top:8px;}
+.btn.sec{background:#2c2c2e;color:#fff;}
+.btn.main{background:var(--accent);color:#3a2d00;}
+.hint{color:var(--note-dim);font-size:12.5px;line-height:1.6;margin:4px 4px 0;}
+.hint b{color:#f2f2f7;}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:200px;margin:8px auto 2px;}
+.kp .kk{aspect-ratio:1;border-radius:50%;background:#2c2c2e;display:grid;place-items:center;font-size:19px;font-weight:700;color:#fff;position:relative;}
+.kp .kk.zero{background:#1c1c1e;box-shadow:inset 0 0 0 1.5px #3a3a3c;color:#9a9aa0;}
+.kp .kk.blank{visibility:hidden;}
+.kp .kk b{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;background:#ff3b30;color:#fff;border-radius:9px;font-size:10.5px;line-height:17px;text-align:center;font-weight:700;}
+</style>
+
+<div id="phone">
+  <div id="statusbar">
+    <span id="clock">9:41</span>
+    <span class="sb-right"><span class="sb-bars"><i></i><i></i><i></i><i></i></span><span style="font-size:13px;font-weight:700">5G</span><span class="batt"></span></span>
+  </div>
+  <div id="pager"></div>
+  <div id="dots"></div>
+  <div id="dock"></div>
+
+  <div id="notesApp">
+    <div class="note-status">
+      <span id="clock2">9:41</span>
+      <span class="sb-right"><span class="sb-bars"><i></i><i></i><i></i><i></i></span><span style="font-size:13px;font-weight:700">5G</span><span class="batt"></span></span>
+    </div>
+    <div class="note-head">
+      <div class="note-top">
+        <button class="note-back" id="notesBack" hidden>
+          <svg viewBox="0 0 13 21" fill="none"><path d="M11 2L2.5 10.5L11 19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="backLabel">Carpetas</span>
+        </button>
+      </div>
+      <div class="note-title" id="notesTitle">Notas</div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="text" placeholder="Buscar" id="noteSearch" autocomplete="off">
+      </div>
+    </div>
+    <div class="note-scroll" id="noteScroll"></div>
+  </div>
+
+  <div id="settings" hidden>
+    <div class="sheet">
+      <div class="grip"></div>
+      <h2>Menú del mago</h2>
+      <p class="sub">Secreto. Para abrirlo: mantené presionada la hora (arriba a la izquierda) 1 segundo.</p>
+      <h3>Qué forzar en cada lista</h3>
+      <div id="forceFields"></div>
+      <h3>Código ingresado ahora</h3>
+      <div class="code-box"><span>Número actual</span><b id="curCode">—</b></div>
+      <button class="btn sec" id="resetCode">Reiniciar código</button>
+      <h3>Dónde está cada número</h3>
+      <p class="hint">Los dígitos están en posición de <b>teclado del teléfono</b>. Tocá la app que está en el lugar del número (1 = arriba a la izquierda … 0 = abajo al centro):</p>
+      <div class="kp" id="kp"></div>
+      <p class="hint"><b>Las dos pantallas tienen apps distintas</b>, pero los lugares funcionan igual. Pantalla 1 = primer dígito (decenas). Pantalla 2 = segundo dígito (unidades). Para 1 al 9 entrá 0 y después el número (07 = 7). Código 00 = 100.</p>
+      <button class="btn main" id="closeSettings">Listo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== LISTAS ===================== */
+const CATS = [
+  {key:"objetos",name:"Objetos",icon:"📦"},{key:"nombres",name:"Nombres",icon:"🪪"},
+  {key:"paises",name:"Países",icon:"🌎"},{key:"bebidas",name:"Bebidas",icon:"🍸"},
+  {key:"celebridades",name:"Celebridades",icon:"⭐"},{key:"autos",name:"Autos",icon:"🚗"},
+  {key:"vinos",name:"Vinos",icon:"🍷"},
+];
+const LISTS = {
+objetos:["Llave","Teléfono","Reloj","Billetera","Anteojos","Lápiz","Cuaderno","Libro","Taza","Cuchara","Tenedor","Cuchillo","Plato","Vaso","Botella","Silla","Mesa","Lámpara","Espejo","Peine","Cepillo","Toalla","Jabón","Tijera","Martillo","Destornillador","Clavo","Tornillo","Pinza","Linterna","Pilas","Cargador","Auricular","Parlante","Control remoto","Mochila","Cartera","Paraguas","Sombrero","Gorra","Bufanda","Guantes","Medias","Zapatos","Zapatillas","Cinturón","Camisa","Pantalón","Campera","Remera","Almohada","Sábana","Manta","Colchón","Cortina","Alfombra","Cajón","Armario","Perchero","Balde","Escoba","Trapo","Esponja","Olla","Sartén","Colador","Rallador","Abrelatas","Exprimidor","Batidora","Tostadora","Heladera","Microondas","Ventilador","Estufa","Plancha","Secador","Aspiradora","Termo","Mate","Encendedor","Vela","Fósforo","Candado","Soga","Cinta","Pegamento","Regla","Goma","Sacapuntas","Carpeta","Grapadora","Calculadora","Mapa","Brújula","Binoculares","Cámara","Guitarra","Pelota","Dado"],
+nombres:["Juan","Pedro","José","Luis","Carlos","Jorge","Miguel","Diego","Martín","Pablo","Santiago","Matías","Nicolás","Agustín","Lucas","Tomás","Franco","Gonzalo","Ramiro","Facundo","Federico","Sebastián","Ignacio","Emiliano","Bruno","Ezequiel","Maximiliano","Joaquín","Gabriel","Alejandro","Hernán","Marcelo","Gustavo","Rubén","Daniel","Fernando","Ricardo","Roberto","Óscar","Raúl","Andrés","Cristian","Damián","Leandro","Mauro","Rodrigo","Walter","Adrián","Néstor","Héctor","María","Ana","Laura","Sofía","Valentina","Camila","Martina","Lucía","Julieta","Florencia","Micaela","Rocío","Carla","Daniela","Paula","Agostina","Belén","Antonella","Victoria","Milagros","Gabriela","Natalia","Carolina","Verónica","Silvia","Patricia","Mónica","Claudia","Sandra","Marcela","Elena","Beatriz","Graciela","Susana","Norma","Alicia","Marta","Rosa","Teresa","Cecilia","Emma","Mía","Catalina","Isabella","Renata","Delfina","Pilar","Guadalupe","Abril","Juana"],
+paises:["Argentina","Brasil","Chile","Uruguay","Paraguay","Bolivia","Perú","Colombia","Ecuador","Venezuela","México","Estados Unidos","Canadá","Cuba","Panamá","Costa Rica","Guatemala","Honduras","Nicaragua","El Salvador","España","Portugal","Francia","Italia","Alemania","Inglaterra","Irlanda","Escocia","Países Bajos","Bélgica","Suiza","Austria","Suecia","Noruega","Dinamarca","Finlandia","Islandia","Polonia","Rusia","Ucrania","Grecia","Turquía","Egipto","Marruecos","Túnez","Argelia","Sudáfrica","Nigeria","Kenia","Etiopía","China","Japón","Corea del Sur","India","Tailandia","Vietnam","Indonesia","Filipinas","Malasia","Singapur","Australia","Nueva Zelanda","Fiyi","Israel","Líbano","Irán","Irak","Arabia Saudita","Emiratos Árabes","Qatar","República Checa","Hungría","Rumania","Bulgaria","Croacia","Serbia","Eslovaquia","Eslovenia","Lituania","Letonia","Estonia","Luxemburgo","Mónaco","Malta","Chipre","Jamaica","Haití","Rep. Dominicana","Puerto Rico","Bahamas","Mongolia","Nepal","Pakistán","Bangladés","Sri Lanka","Camboya","Birmania","Angola","Ghana","Senegal"],
+bebidas:["Agua","Soda","Coca-Cola","Pepsi","Sprite","Fanta","Seven Up","Agua tónica","Jugo de naranja","Jugo de manzana","Limonada","Café","Café con leche","Té","Mate","Mate cocido","Chocolatada","Leche","Licuado de banana","Jugo de uva","Cerveza","Cerveza negra","Cerveza roja","IPA","Vino tinto","Vino blanco","Vino rosado","Champagne","Sidra","Espumante","Fernet","Fernet con Coca","Gancia","Aperol","Campari","Vermut","Cynar","Gin","Gin tonic","Vodka","Whisky","Ron","Tequila","Mezcal","Cognac","Brandy","Aguardiente","Grappa","Licor de café","Baileys","Caipirinha","Mojito","Daiquiri","Margarita","Piña colada","Cuba libre","Destornillador","Bloody Mary","Negroni","Manhattan","Cosmopolitan","Tequila sunrise","Sex on the beach","Clericó","Sangría","Terma","Amargo Obrero","Branca","Hesperidina","Legui","Red Bull","Speed","Monster","Gatorade","Powerade","Agua saborizada","Jugo de pomelo","Jugo de durazno","Jugo de pera","Jugo de ananá","Malta","Guaraná","Bitter","Pomelo","Naranjú","Manaos","Cunnington","Secco","Pritty","Paso de los Toros","Café cortado","Capuchino","Submarino","Té verde","Manzanilla","Tereré","Horchata","Batido de chocolate","Agua con gas"],
+celebridades:["Lionel Messi","Diego Maradona","Cristiano Ronaldo","Michael Jordan","Rafael Nadal","Roger Federer","Novak Djokovic","Usain Bolt","LeBron James","Neymar","Brad Pitt","Angelina Jolie","Leonardo DiCaprio","Tom Cruise","Johnny Depp","Will Smith","Robert De Niro","Al Pacino","Morgan Freeman","Denzel Washington","Scarlett Johansson","Jennifer Lawrence","Meryl Streep","Julia Roberts","Nicole Kidman","Emma Watson","Natalie Portman","Keanu Reeves","Dwayne Johnson","Tom Hanks","Taylor Swift","Beyoncé","Madonna","Lady Gaga","Rihanna","Shakira","Adele","Katy Perry","Bruno Mars","Ed Sheeran","Michael Jackson","Freddie Mercury","Elvis Presley","John Lennon","Paul McCartney","Mick Jagger","Bob Dylan","David Bowie","Elton John","Prince","The Weeknd","Drake","Eminem","Kanye West","Jay-Z","Snoop Dogg","Justin Bieber","Billie Eilish","Dua Lipa","Bad Bunny","Charly García","Gustavo Cerati","Fito Páez","Luis Alberto Spinetta","Andrés Calamaro","León Gieco","Mercedes Sosa","Soda Stereo","Babasónicos","Divididos","Ricardo Darín","Guillermo Francella","Susana Giménez","Mirtha Legrand","Marcelo Tinelli","Lionel Scaloni","Ángel Di María","Emiliano Martínez","Manu Ginóbili","Juan Martín del Potro","Barack Obama","Donald Trump","Nelson Mandela","Albert Einstein","Steve Jobs","Bill Gates","Elon Musk","Mark Zuckerberg","Jeff Bezos","Papa Francisco","Oprah Winfrey","Ellen DeGeneres","Gal Gadot","Kim Kardashian","Kylie Jenner","Jackie Chan","Jet Li","Arnold Schwarzenegger","Sylvester Stallone","Jim Carrey"],
+autos:["Volkswagen Gol","Volkswagen Golf","Volkswagen Vento","Volkswagen Amarok","Ford Fiesta","Ford Focus","Ford Ranger","Ford Mustang","Ford Ka","Chevrolet Corsa","Chevrolet Onix","Chevrolet Cruze","Chevrolet S10","Chevrolet Tracker","Fiat Uno","Fiat Palio","Fiat Cronos","Fiat Toro","Fiat 500","Renault Clio","Renault Sandero","Renault Duster","Renault Kangoo","Renault Mégane","Peugeot 206","Peugeot 207","Peugeot 208","Peugeot 308","Peugeot 2008","Toyota Corolla","Toyota Hilux","Toyota Etios","Toyota Yaris","Toyota SW4","Toyota RAV4","Honda Civic","Honda Fit","Honda CR-V","Honda HR-V","Nissan Versa","Nissan Frontier","Nissan Kicks","Nissan Sentra","Hyundai Tucson","Hyundai Santa Fe","Hyundai i30","Kia Sportage","Kia Rio","Kia Cerato","Citroën C3","Citroën C4","Citroën Berlingo","Mercedes-Benz Clase A","Mercedes-Benz Clase C","Mercedes-Benz Clase E","BMW Serie 1","BMW Serie 3","BMW X5","Audi A3","Audi A4","Audi Q5","Audi TT","Jeep Renegade","Jeep Compass","Jeep Wrangler","Mini Cooper","Volvo XC60","Volvo S60","Subaru Impreza","Mazda 3","Ferrari","Lamborghini","Porsche 911","Maserati","Bentley","Rolls-Royce","Aston Martin","Bugatti","McLaren","Jaguar","Tesla Model 3","Tesla Model S","Tesla Model X","Land Rover Defender","Range Rover","Dodge Charger","Dodge Challenger","Chrysler 300","Cadillac Escalade","Lincoln Navigator","Alfa Romeo Giulia","Lancia","Seat Ibiza","Skoda Octavia","Opel Astra","Mitsubishi Montero","Suzuki Swift","Chery Tiggo","BYD Dolphin","DS 3"],
+vinos:["Malbec","Cabernet Sauvignon","Merlot","Syrah","Pinot Noir","Bonarda","Tempranillo","Tannat","Cabernet Franc","Petit Verdot","Torrontés","Chardonnay","Sauvignon Blanc","Viognier","Semillón","Pinot Grigio","Riesling","Chenin","Moscatel","Gewürztraminer","Rutini","Catena Zapata","Luigi Bosca","Norton","Trapiche","Navarro Correas","Santa Julia","Trumpeter","El Esteco","Alta Vista","Finca Las Moras","Nieto Senetiner","Salentein","Zuccardi","Doña Paula","Terrazas de los Andes","Chandon","Fond de Cave","Saint Felicien","Angélica Zapata","Benjamín","Dadá","Fuzion","Uvita","Callia","Michel Torino","La Linda","Portillo","Cafayate","Colón","Latitud 33","Las Perdices","Séptima","Andeluna","Tomero","Pascual Toso","Finca Flichman","Graffigna","Mascota","Bramare","Achaval Ferrer","Cheval des Andes","Clos de los Siete","Susana Balbo","Dominio del Plata","Matervini","Riccitelli","Otronia","Chacra","Noemía","Dante Robino","Humberto Canale","Familia Schroeder","Del Fin del Mundo","Bodega del Desierto","Sophenia","Monteviejo","Vistalba","Pulenta Estate","Mendel","Ribera del Duero","Rioja","Barolo","Brunello","Chianti","Burdeos","Borgoña","Oporto","Jerez","Champagne francés","Prosecco","Cava","Lambrusco","Carménère","Zinfandel","Garnacha","Nebbiolo","Sangiovese","Grüner Veltliner","Albariño"],
+};
+for(const k in LISTS){ while(LISTS[k].length<100) LISTS[k].push("—"); LISTS[k]=LISTS[k].slice(0,100); }
+
+/* ===================== ÍCONOS (SVG estilo iOS) ===================== */
+const DOW=["DOM","LUN","MAR","MIÉ","JUE","VIE","SÁB"]; const _d=new Date();
+const CAL_DOW=DOW[_d.getDay()], CAL_DAY=_d.getDate();
+const S=(inner)=>`<svg viewBox="0 0 24 24" style="width:100%;height:100%">${inner}</svg>`;
+const G=(sz,fill,path)=>`<svg viewBox="0 0 24 24" fill="${fill}" style="width:${sz}%;height:${sz}%"><path d="${path}"/></svg>`;
+const ICONS={
+  phone:{bg:"linear-gradient(180deg,#5be36b,#2bbd49)",html:G(58,"#fff","M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 5c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.24.2 2.45.57 3.57.11.35.03.74-.24 1.02l-2.2 2.2z")},
+  messages:{bg:"linear-gradient(180deg,#4bea5c,#15c93c)",html:G(60,"#fff","M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z")},
+  mail:{bg:"linear-gradient(180deg,#3aa0ff,#1f7ff5)",html:G(60,"#fff","M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z")},
+  safari:{bg:"radial-gradient(circle at 50% 50%,#ffffff 0 16%,#44b4ff 42%,#1f8fe6 100%)",html:S(`<circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="1.4"/><path d="M12 12 L16.5 7.5 L13.5 11 Z" fill="#ff4b4b"/><path d="M12 12 L7.5 16.5 L10.5 13 Z" fill="#fff"/><circle cx="12" cy="12" r="1" fill="#fff"/>`)},
+  camera:{bg:"linear-gradient(180deg,#6f6f78,#36363c)",html:S(`<rect x="3" y="7" width="18" height="12" rx="3" fill="#fff"/><rect x="8.5" y="5" width="7" height="3" rx="1.2" fill="#fff"/><circle cx="12" cy="13" r="3.4" fill="#36363c"/><circle cx="12" cy="13" r="2.1" fill="#9aa0a6"/><circle cx="17.6" cy="9.6" r=".8" fill="#36363c"/>`)},
+  photos:{bg:"#ffffff",html:S(`<g opacity=".92"><ellipse cx="12" cy="12" rx="3" ry="7" fill="#ff5b5b"/><ellipse cx="12" cy="12" rx="3" ry="7" fill="#ff9f1c" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="3" ry="7" fill="#ffd23f" transform="rotate(120 12 12)"/><ellipse cx="12" cy="12" rx="3" ry="7" fill="#44d07b" transform="rotate(180 12 12)" opacity=".9"/><ellipse cx="12" cy="12" rx="3" ry="7" fill="#3aa0ff" transform="rotate(240 12 12)"/><ellipse cx="12" cy="12" rx="3" ry="7" fill="#b06bff" transform="rotate(300 12 12)"/></g>`)},
+  maps:{bg:"linear-gradient(180deg,#7bd389,#46b35f)",html:G(60,"#fff","M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z")},
+  music:{bg:"linear-gradient(180deg,#fb5c74,#f0304f)",html:S(`<path d="M9 17V6l9-2v9" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="17" r="2.3" fill="#fff"/><circle cx="16" cy="15" r="2.3" fill="#fff"/>`)},
+  calendar:{bg:"#ffffff",html:S(`<rect x="0" y="0" width="24" height="7" fill="#ff3b30"/><text x="12" y="5" font-size="3.3" fill="#fff" text-anchor="middle" font-family="sans-serif" font-weight="700">${CAL_DOW}</text><text x="12" y="19" font-size="11" fill="#1c1c1e" text-anchor="middle" font-family="sans-serif" font-weight="500">${CAL_DAY}</text>`)},
+  calculator:{bg:"linear-gradient(180deg,#2b2b2e,#161618)",html:S(`<rect x="3" y="3" width="18" height="3.4" rx="1" fill="#3a3a3c"/><g fill="#5a5a5e"><rect x="3" y="9.3" width="3.4" height="3.4" rx="1"/><rect x="8" y="9.3" width="3.4" height="3.4" rx="1"/><rect x="13" y="9.3" width="3.4" height="3.4" rx="1"/><rect x="3" y="13.6" width="3.4" height="3.4" rx="1"/><rect x="8" y="13.6" width="3.4" height="3.4" rx="1"/><rect x="13" y="13.6" width="3.4" height="3.4" rx="1"/><rect x="3" y="17.9" width="3.4" height="3.4" rx="1"/><rect x="8" y="17.9" width="3.4" height="3.4" rx="1"/><rect x="13" y="17.9" width="3.4" height="3.4" rx="1"/></g><g fill="#ff9f0a"><rect x="18" y="9.3" width="3.4" height="3.4" rx="1"/><rect x="18" y="13.6" width="3.4" height="3.4" rx="1"/><rect x="18" y="17.9" width="3.4" height="3.4" rx="1"/></g>`)},
+  settings:{bg:"linear-gradient(180deg,#b9bcc2,#878b92)",html:G(74,"#fff","M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z")},
+  weather:{bg:"linear-gradient(180deg,#48b5ff,#1e86f0)",html:S(`<circle cx="9.5" cy="9" r="3.6" fill="#ffd23f"/><path d="M7 18h9a3.2 3.2 0 0 0 .2-6.38A4.3 4.3 0 0 0 8 11.2 3.4 3.4 0 0 0 7 18z" fill="#fff"/>`)},
+  files:{bg:"#ffffff",html:S(`<path d="M3 7c0-1.1.9-2 2-2h4l2 2h8c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V7z" fill="#2e9bff"/><path d="M3 9.2h18V17c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V9.2z" fill="#5ab4ff"/>`)},
+  reminders:{bg:"#ffffff",html:S(`<circle cx="5" cy="7" r="1.7" fill="#ff3b30"/><rect x="8.2" y="6.2" width="11" height="1.6" rx=".8" fill="#c7c7cc"/><circle cx="5" cy="12" r="1.7" fill="#ff9f0a"/><rect x="8.2" y="11.2" width="11" height="1.6" rx=".8" fill="#c7c7cc"/><circle cx="5" cy="17" r="1.7" fill="#34c759"/><rect x="8.2" y="16.2" width="11" height="1.6" rx=".8" fill="#c7c7cc"/>`)},
+  appstore:{bg:"linear-gradient(180deg,#2aa4ff,#0a74e6)",html:G(64,"#fff","M12 5l5.2 13h-2.4l-1.05-2.9H10.25L9.2 18H6.8L12 5zm0 4.4l-1.35 3.7h2.7L12 9.4z")},
+  health:{bg:"#ffffff",html:G(64,"#ff2d55","M12 21s-6.5-4.35-9-8.5C1 9 3 5 6.5 5c2 0 3.5 1.2 5.5 3 2-1.8 3.5-3 5.5-3C21 5 23 9 21 12.5 18.5 16.65 12 21 12 21z")},
+  wallet:{bg:"linear-gradient(180deg,#2b2b2e,#161618)",html:S(`<rect x="4" y="6" width="16" height="4" rx="1.6" fill="#ff3b30"/><rect x="4" y="10.3" width="16" height="4" rx="1.6" fill="#ff9f0a"/><rect x="4" y="14.6" width="16" height="4" rx="1.6" fill="#34c759"/>`)},
+  podcasts:{bg:"linear-gradient(180deg,#b06bff,#7b32e0)",html:S(`<circle cx="12" cy="8" r="2.6" fill="#fff"/><path d="M7 15a5 5 0 1 1 10 0" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M12 12c2 0 2.1 2 1.5 8h-3C9.9 14 10 12 12 12z" fill="#fff"/>`)},
+  tv:{bg:"linear-gradient(180deg,#2b2b2e,#000)",html:S(`<rect x="3" y="5" width="18" height="12" rx="2" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M8 20h8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>`)},
+  stocks:{bg:"linear-gradient(180deg,#2b2b2e,#161618)",html:S(`<polyline points="3,16 8,11 12,14 20,5" fill="none" stroke="#34c759" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`)},
+  contacts:{bg:"linear-gradient(180deg,#cfd3da,#a9adb5)",html:S(`<circle cx="12" cy="9" r="3.4" fill="#fff"/><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5z" fill="#fff"/>`)},
+  compass:{bg:"linear-gradient(180deg,#3a3f46,#1f2329)",html:S(`<circle cx="12" cy="12" r="8.5" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M12 12 L15 9 L13 13 Z" fill="#ff4b4b"/><path d="M12 12 L9 15 L11 11 Z" fill="#fff"/>`)},
+  mic:{bg:"linear-gradient(180deg,#e9e9ee,#cfcfd6)",html:G(60,"#3a3a40","M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z")},
+  books:{bg:"linear-gradient(180deg,#ff9f45,#f47b1f)",html:S(`<path d="M11 5c-2-1-5-1-7 0v13c2-1 5-1 7 0V5z" fill="#fff"/><path d="M13 5c2-1 5-1 7 0v13c-2-1-5-1-7 0V5z" fill="#fff" opacity=".85"/>`)},
+  news:{bg:"#ffffff",html:S(`<rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="#e23b3b" stroke-width="1.5"/><rect x="5.5" y="6.5" width="7" height="5" fill="#333"/><rect x="14" y="6.5" width="4.5" height="1.4" fill="#333"/><rect x="14" y="9.3" width="4.5" height="1.4" fill="#333"/><rect x="5.5" y="13.2" width="13" height="1.4" fill="#333"/><rect x="5.5" y="15.8" width="13" height="1.4" fill="#333"/>`)},
+  fitness:{bg:"linear-gradient(180deg,#141414,#000)",html:S(`<circle cx="12" cy="12" r="8" fill="none" stroke="#fa2d55" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="40 60"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#a3f900" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="27 45"/><circle cx="12" cy="12" r="3" fill="none" stroke="#00e5ff" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="13 30"/>`)},
+  translate:{bg:"linear-gradient(180deg,#3aa0ff,#1f7ff5)",html:S(`<circle cx="9" cy="9.5" r="5" fill="none" stroke="#fff" stroke-width="1.4"/><path d="M4 9.5h10M9 4.8c2.5 2.5 2.5 7 0 9.4M9 4.8c-2.5 2.5-2.5 7 0 9.4" stroke="#fff" stroke-width="1.1" fill="none"/><text x="16.5" y="20" font-size="8.5" fill="#fff" font-family="sans-serif" font-weight="700">A</text>`)},
+  home:{bg:"#ffffff",html:G(66,"#3aa0ff","M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z")},
+  shortcuts:{bg:"linear-gradient(135deg,#ff4b7d,#8a5bff)",html:S(`<rect x="4" y="4" width="10" height="10" rx="3" fill="#fff" opacity=".92"/><rect x="10" y="10" width="10" height="10" rx="3" fill="#fff" opacity=".65"/>`)},
+  notes:{bg:"#ffffff",html:S(`<rect x="0" y="0" width="24" height="4.6" fill="#ffd23f"/><rect x="5.5" y="9" width="13" height="1.6" rx=".8" fill="#c7c7cc"/><rect x="5.5" y="12.5" width="13" height="1.6" rx=".8" fill="#c7c7cc"/><rect x="5.5" y="16" width="8" height="1.6" rx=".8" fill="#c7c7cc"/>`),action:"notas"},
+};
+const LABEL={phone:"Teléfono",messages:"Mensajes",mail:"Mail",safari:"Safari",camera:"Cámara",photos:"Fotos",maps:"Mapas",music:"Música",calendar:"Calendario",calculator:"Calculadora",settings:"Ajustes",weather:"Clima",files:"Archivos",reminders:"Recordatorios",appstore:"App Store",health:"Salud",wallet:"Cartera",podcasts:"Podcasts",tv:"TV",stocks:"Bolsa",contacts:"Contactos",compass:"Brújula",mic:"Grabadora",books:"Libros",news:"Noticias",fitness:"Fitness",translate:"Traducir",home:"Casa",shortcuts:"Atajos",notes:"Notas"};
+
+/* dígito -> posición (fila,columna) en el teclado telefónico */
+const DIGIT_POS = {1:[2,1],2:[2,2],3:[2,3],4:[3,1],5:[3,2],6:[3,3],7:[4,1],8:[4,2],9:[4,3],0:[5,2]};
+const DECOY_POS = [[1,1],[1,2],[1,3],[1,4],[2,4],[3,4],[4,4],[5,1],[5,3],[5,4],[6,1],[6,2],[6,3],[6,4]];
+
+/* apps de dígito (idx 0->1, 1->2, ... 8->9, 9->0) y señuelos, DISTINTAS por pantalla */
+const P1_DIGIT = ["messages","mail","safari","maps","music","camera","weather","reminders","calendar","phone"];
+const P1_DECOY = ["photos","settings","files","podcasts","health","appstore","wallet","stocks","contacts","calculator","tv","books","mic","compass"];
+const P2_DIGIT = ["books","mic","compass","fitness","translate","home","shortcuts","news","tv","stocks"];
+const P2_DECOY = ["phone","messages","mail","safari","maps","music","camera","weather","reminders","calendar","photos","settings","files","podcasts"];
+const PAGE3 = ["notes","messages","safari","music","photos","maps","mail","camera","calendar","settings","health","wallet","appstore","podcasts","files","weather"];
+const DOCK  = ["phone","safari","messages","music"];
+
+/* ===================== ESTADO ===================== */
+const DEFAULT_FORCED = {objetos:"",nombres:"",paises:"",bebidas:"",celebridades:"",autos:"",vinos:""};
+let state = {forced:{...DEFAULT_FORCED}};
+try{ const raw=localStorage.getItem("mentalia_v1"); if(raw){ const s=JSON.parse(raw); if(s.forced) state.forced={...DEFAULT_FORCED,...s.forced}; } }catch(e){}
+function save(){ try{ localStorage.setItem("mentalia_v1",JSON.stringify({forced:state.forced})); }catch(e){} }
+
+let tens=null, units=null;
+function forcedNumber(){ if(tens===null||units===null) return null; const n=tens*10+units; return n===0?100:n; }
+
+/* ===================== RENDER HOME ===================== */
+const pager=document.getElementById("pager");
+const dots=document.getElementById("dots");
+
+function makeApp(name,{digit,role,badge,pos}={}){
+  const ic=ICONS[name];
+  const el=document.createElement("div"); el.className="app";
+  const wrap=document.createElement("div"); wrap.className="iconwrap";
+  const box=document.createElement("div"); box.className="ico"; box.style.background=ic.bg; box.innerHTML=ic.html;
+  wrap.appendChild(box);
+  if(badge!=null){ const b=document.createElement("div"); b.className="badge"; b.textContent=badge; wrap.appendChild(b); }
+  const lb=document.createElement("div"); lb.className="lbl"; lb.textContent=LABEL[name]||"";
+  el.appendChild(wrap); el.appendChild(lb);
+  if(ic.action) el.dataset.action=ic.action;
+  if(digit!==undefined) el.dataset.digit=digit;
+  if(role) el.dataset.role=role;
+  if(pos){ el.style.gridRow=pos[0]; el.style.gridColumn=pos[1]; }
+  el.addEventListener("click",()=>onTileTap(el));
+  return el;
+}
+function buildKeypadPage(role,digitApps,decoyApps){
+  const p=document.createElement("div"); p.className="page"; p.dataset.role=role;
+  const g=document.createElement("div"); g.className="grid";
+  const digits=[1,2,3,4,5,6,7,8,9,0];
+  digits.forEach((d,i)=>{ const pos=DIGIT_POS[d]; g.appendChild(makeApp(digitApps[i],{digit:d,role,pos})); });
+  decoyApps.forEach((n,i)=>{ g.appendChild(makeApp(n,{pos:DECOY_POS[i]})); });
+  p.appendChild(g); return p;
+}
+function buildAppsPage(){
+  const p=document.createElement("div"); p.className="page"; p.dataset.role="apps";
+  const g=document.createElement("div"); g.className="grid";
+  PAGE3.forEach(n=>g.appendChild(makeApp(n)));
+  p.appendChild(g); return p;
+}
+const PAGES=[buildKeypadPage("tens",P1_DIGIT,P1_DECOY),buildKeypadPage("units",P2_DIGIT,P2_DECOY),buildAppsPage()];
+PAGES.forEach(p=>pager.appendChild(p));
+PAGES.forEach((_,i)=>{ const d=document.createElement("span"); if(i===0)d.className="on"; dots.appendChild(d); });
+const dock=document.getElementById("dock"); DOCK.forEach(n=>dock.appendChild(makeApp(n)));
+
+let curPage=0;
+pager.addEventListener("scroll",()=>{ const i=Math.round(pager.scrollLeft/pager.clientWidth);
+  if(i!==curPage){ curPage=i; [...dots.children].forEach((d,k)=>d.classList.toggle("on",k===i)); } });
+
+function onTileTap(el){
+  el.classList.add("tapped"); setTimeout(()=>el.classList.remove("tapped"),140);
+  const role=el.dataset.role;
+  if(el.dataset.digit!==undefined && (role==="tens"||role==="units")){
+    const d=+el.dataset.digit; if(role==="tens") tens=d; else units=d; return;
+  }
+  if(el.dataset.action==="notas") openNotes();
+}
+
+/* ===================== APP DE NOTAS ===================== */
+const notesApp=document.getElementById("notesApp");
+const noteScroll=document.getElementById("noteScroll");
+const notesTitle=document.getElementById("notesTitle");
+const notesBack=document.getElementById("notesBack");
+const backLabel=document.getElementById("backLabel");
+const noteSearch=document.getElementById("noteSearch");
+let noteView="folders";
+function openNotes(){ notesApp.classList.add("open"); showFolders(); }
+function closeNotes(){ notesApp.classList.remove("open"); tens=null; units=null; setTimeout(()=>pager.scrollTo({left:0,behavior:"auto"}),300); }
+function showFolders(){
+  noteView="folders"; notesTitle.textContent="Notas"; notesBack.hidden=true; noteSearch.value="";
+  const card=document.createElement("div"); card.className="note-card";
+  CATS.forEach(c=>{ const r=document.createElement("div"); r.className="folder-row";
+    r.innerHTML=`<span class="fi">${c.icon}</span><span class="fn">${c.name}</span><span class="cnt">100</span><span class="chev">›</span>`;
+    r.addEventListener("click",()=>showList(c)); card.appendChild(r); });
+  noteScroll.innerHTML=""; noteScroll.appendChild(card); noteScroll.scrollTop=0;
+}
+function showList(cat){
+  noteView="list"; notesTitle.textContent=cat.name; notesBack.hidden=false; backLabel.textContent="Notas";
+  const N=forcedNumber();
+  const card=document.createElement("div"); card.className="note-card";
+  for(let i=1;i<=100;i++){
+    let val=LISTS[cat.key][i-1];
+    if(N!==null && i===N && state.forced[cat.key] && state.forced[cat.key].trim()!=="") val=state.forced[cat.key].trim();
+    const r=document.createElement("div"); r.className="item-row";
+    const num=document.createElement("span"); num.className="num"; num.textContent=i;
+    const v=document.createElement("span"); v.className="val"; v.textContent=val;
+    r.appendChild(num); r.appendChild(v); card.appendChild(r);
+  }
+  noteScroll.innerHTML=""; noteScroll.appendChild(card);
+  const meta=document.createElement("div"); meta.className="note-meta"; meta.textContent="100 elementos";
+  noteScroll.appendChild(meta); noteScroll.scrollTop=0;
+}
+notesBack.addEventListener("click",()=>{ if(noteView==="list") showFolders(); else closeNotes(); });
+noteSearch.addEventListener("input",()=>{ if(noteView!=="list") return; const q=noteSearch.value.toLowerCase();
+  [...noteScroll.querySelectorAll(".item-row")].forEach(r=>{ const t=r.querySelector(".val").textContent.toLowerCase(); r.style.display=(!q||t.includes(q))?"":"none"; }); });
+
+/* ===================== MENÚ OCULTO ===================== */
+const settings=document.getElementById("settings");
+const clock=document.getElementById("clock");
+let pressTimer=null;
+function armPress(){ pressTimer=setTimeout(openSettings,900); }
+function disarmPress(){ clearTimeout(pressTimer); }
+clock.addEventListener("mousedown",armPress);
+clock.addEventListener("touchstart",armPress,{passive:true});
+["mouseup","mouseleave","touchend","touchcancel","touchmove"].forEach(ev=>clock.addEventListener(ev,disarmPress));
+function openSettings(){ renderForceFields(); renderKp();
+  document.getElementById("curCode").textContent = forcedNumber()===null ? "—" : forcedNumber(); settings.hidden=false; }
+function renderForceFields(){ const wrap=document.getElementById("forceFields"); wrap.innerHTML="";
+  CATS.forEach(c=>{ const f=document.createElement("div"); f.className="field";
+    f.innerHTML=`<span class="k">${c.icon} ${c.name}</span>`;
+    const inp=document.createElement("input"); inp.type="text"; inp.placeholder="(sin forzar)"; inp.value=state.forced[c.key]||"";
+    inp.addEventListener("input",()=>{ state.forced[c.key]=inp.value; save(); });
+    f.appendChild(inp); wrap.appendChild(f); }); }
+function renderKp(){ const g=document.getElementById("kp"); g.innerHTML="";
+  const order=[1,2,3,4,5,6,7,8,9,"blank",0,"blank"];
+  order.forEach(d=>{ const c=document.createElement("div");
+    if(d==="blank"){ c.className="kk blank"; }
+    else if(d===0){ c.className="kk zero"; c.textContent="0"; }
+    else { c.className="kk"; c.innerHTML=`<b>${d}</b>`; }
+    g.appendChild(c); }); }
+document.getElementById("resetCode").addEventListener("click",()=>{ tens=null; units=null; document.getElementById("curCode").textContent="—"; });
+document.getElementById("closeSettings").addEventListener("click",()=>{ settings.hidden=true; });
+settings.addEventListener("click",(e)=>{ if(e.target===settings) settings.hidden=true; });
+
+/* ===================== RELOJ BARRA ===================== */
+function tick(){ const d=new Date(); const t=d.getHours().toString().padStart(2,"0")+":"+d.getMinutes().toString().padStart(2,"0");
+  document.getElementById("clock").textContent=t; document.getElementById("clock2").textContent=t; }
+tick(); setInterval(tick,10000);
+</script>
