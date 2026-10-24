@@ -47,7 +47,7 @@ body{margin:0;background:var(--wall3);font-family:var(--f-ui);-webkit-font-smoot
 .app .lbl{font-size:11px;color:var(--ink);text-shadow:0 1px 2px rgba(0,0,0,.5);max-width:70px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 #dots{flex:0 0 auto;display:flex;justify-content:center;gap:7px;padding:4px 0 6px;}
-#dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .2s;}
+#dots span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .2s;cursor:pointer;}
 #dots span.on{background:#fff;}
 
 #dock{flex:0 0 auto;margin:2px max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
@@ -268,7 +268,7 @@ function buildAppsPage(){
 }
 const PAGES=[buildKeypadPage("tens",P1_DIGIT,P1_DECOY),buildKeypadPage("units",P2_DIGIT,P2_DECOY),buildAppsPage()];
 PAGES.forEach(p=>pager.appendChild(p));
-PAGES.forEach((_,i)=>{ const d=document.createElement("span"); if(i===0)d.className="on"; dots.appendChild(d); });
+PAGES.forEach((_,i)=>{ const d=document.createElement("span"); if(i===0)d.className="on"; d.addEventListener("click",()=>pager.scrollTo({left:i*pager.clientWidth,behavior:"smooth"})); dots.appendChild(d); });
 const dock=document.getElementById("dock"); DOCK.forEach(n=>dock.appendChild(makeApp(n)));
 
 let curPage=0;
