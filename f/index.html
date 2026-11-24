@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex">
+<title>Imagen</title>
+<style>
+ html,body{margin:0;height:100%;background:#000;overflow:hidden}
+ #img{position:fixed;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .35s}
+ #img.ver{opacity:1}
+ #carga{position:fixed;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border:3px solid #333;border-top-color:#888;border-radius:50%;animation:g 0.9s linear infinite}
+ @keyframes g{to{transform:rotate(360deg)}}
+ #nada{position:fixed;inset:0;display:none;align-items:center;justify-content:center;color:#777;font:16px -apple-system,Roboto,Arial,sans-serif}
+</style>
+</head><body>
+<div id="carga"></div>
+<img id="img" alt="">
+<div id="nada">Sin imagen</div>
+<script>
+// Foto Mágica: muestra directo la primera imagen de lo que se buscó.
+// Uso: .../f/?q=francia
+const q=(new URLSearchParams(location.search).get('q')||'').replace(/\+/g,' ').trim();
+document.title=q?q.charAt(0).toUpperCase()+q.slice(1):'Imagen';
+
+const ANCHO=Math.min(2000,Math.round(Math.max(screen.width,screen.height)*(window.devicePixelRatio||1)));
+
+function primera(paginas,campo){
+  if(!paginas)return null;
+  const l=Object.values(paginas).sort((a,b)=>(a.index||0)-(b.index||0));
+  for(const p of l){const u=campo(p);if(u)return u}
+  return null;
+}
+async function json(url){const r=await fetch(url);if(!r.ok)throw 0;return r.json()}
+
+// 1) Wikipedia en español (foto principal del artículo que mejor coincide)
+async function wiki(lang){
+  const u='https://'+lang+'.wikipedia.org/w/api.php?action=query&format=json&origin=*'+
+    '&generator=search&gsrlimit=5&gsrsearch='+encodeURIComponent(q)+
+    '&prop=pageimages&piprop=thumbnail&pithumbsize='+ANCHO;
+  const j=await json(u);
+  return primera(j.query&&j.query.pages,p=>p.thumbnail&&p.thumbnail.source);
+}
+// 2) Wikimedia Commons (fotos sueltas)
+async function commons(){
+  const u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*'+
+    '&generator=search&gsrnamespace=6&gsrlimit=5&gsrsearch='+encodeURIComponent(q+' filetype:bitmap')+
+    '&prop=imageinfo&iiprop=url&iiurlwidth='+ANCHO;
+  const j=await json(u);
+  return primera(j.query&&j.query.pages,p=>p.imageinfo&&p.imageinfo[0]&&(p.imageinfo[0].thumburl||p.imageinfo[0].url));
+}
+
+function mostrar(src){
+  const im=document.getElementById('img');
+  im.onload=()=>{document.getElementById('carga').style.display='none';im.classList.add('ver')};
+  im.onerror=()=>sinImagen();
+  im.src=src;
+}
+function sinImagen(){
+  document.getElementById('carga').style.display='none';
+  document.getElementById('nada').style.display='flex';
+}
+
+(async()=>{
+  if(!q){sinImagen();return}
+  for(const f of [()=>wiki('es'),()=>wiki('en'),commons]){
+    try{const u=await f();if(u){mostrar(u);return}}catch(e){}
+  }
+  sinImagen();
+})();
+</script>
+</body></html>
