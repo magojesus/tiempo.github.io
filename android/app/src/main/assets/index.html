@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mind Search">
+<meta name="robots" content="noindex">
+<link rel="apple-touch-icon" sizes="180x180" href="icono180.png">
+<link rel="icon" type="image/png" href="icono180.png">
+<title>Mind Search</title>
+<style>
+ *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+ html,body{margin:0;height:100%;background:#fff;color:#1c1c1e;font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+ #barra{position:fixed;top:0;left:0;right:0;height:54px;margin-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid #eee;z-index:2}
+ #atras{color:#e0a800;font-size:17px;padding:0 14px}
+ #titulo{font-weight:600;font-size:17px;padding:10px 20px;user-select:none;-webkit-user-select:none}
+ #listo{color:#e0a800;font-size:17px;font-weight:600;padding:14px 16px;cursor:pointer;user-select:none;-webkit-user-select:none}
+ #listo:active{opacity:.4}
+ #punto{display:inline-block;width:5px;height:5px;border-radius:50%;background:transparent;margin-left:4px;vertical-align:middle}
+ #hoja{position:absolute;top:calc(54px + env(safe-area-inset-top));left:0;right:0;bottom:0;padding:14px 18px;overflow:auto}
+ #fecha{color:#8e8e93;font-size:13px;text-align:center;margin:2px 0 12px}
+ #nota{width:100%;min-height:75vh;border:0;outline:0;resize:none;font-size:18px;line-height:1.5;font-family:inherit;color:#1c1c1e;background:transparent}
+ #guardado{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:#8e8e93;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none}
+ #guardado.ver{opacity:1}
+ #ajustes{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:5;align-items:flex-end}
+ #panel{background:#f2f2f7;width:100%;border-radius:16px 16px 0 0;padding:16px 16px 28px;max-height:90vh;overflow-y:auto}
+ #panel h3{margin:14px 0 8px;font-size:16px}
+ #panel h3:first-child{margin-top:4px}
+ .fila{display:flex;gap:8px;margin:8px 0}
+ .fila button{flex:1}
+ #panel button{font-size:15px;padding:12px;border:0;border-radius:10px;background:#fff;color:#1c1c1e}
+ #panel button.on{background:#e0a800;color:#fff}
+ #panel button.grande{width:100%;margin-top:6px;background:#1c1c1e;color:#fff}
+ #panel label{font-size:14px;color:#555}
+ .estado{font-size:14px;margin:6px 0;background:#fff;border-radius:10px;padding:10px}
+ .ok{color:#1a8f3a} .mal{color:#c62828}
+ input[type=password]{flex:1;font-size:15px;padding:10px;border:0;border-radius:10px}
+ #cerrar{width:100%;margin-top:14px;background:#1c1c1e!important;color:#fff!important}
+</style></head><body>
+<div id="barra">
+ <div id="atras">&#x2039; Carpetas</div>
+ <div id="titulo">Notas<span id="punto"></span></div>
+ <div id="listo">OK</div>
+</div>
+<div id="hoja">
+ <div id="fecha"></div>
+ <textarea id="nota" placeholder="Escribí una nota..." autocapitalize="sentences" autocomplete="off" spellcheck="false"></textarea>
+</div>
+<div id="guardado">Guardado &#10003;</div>
+
+<div id="ajustes"><div id="panel">
+ <h3>Dispositivo</h3>
+ <div class="estado" id="estP">...</div>
+ <button class="grande" id="btnPlaca" onclick="conectarPlaca()">Conectar dispositivo</button>
+
+ <h3>Qué abre en el espectador</h3>
+ <div class="fila">
+  <button id="m_web" onclick="modo('web')">Google</button>
+  <button id="m_img" onclick="modo('img')">Fotos</button>
+  <button id="m_txt" onclick="modo('txt')">Solo texto</button>
+ </div>
+ <label>Celular del espectador</label>
+ <div class="fila">
+  <button id="c_and" onclick="cel(false)">Android</button>
+  <button id="c_iph" onclick="cel(true)">iPhone</button>
+ </div>
+ <label>Cómo ir a la barra (Android) — probá cuál anda en Chrome</label>
+ <div class="fila">
+  <button id="b_1" onclick="barra(1)">Ctrl+L</button>
+  <button id="b_2" onclick="barra(2)">Alt+D</button>
+  <button id="b_3" onclick="barra(3)">Tecla Buscar</button>
+ </div>
+ <label>Abrir el navegador solo (Android)</label>
+ <div class="fila">
+  <button id="n_on" onclick="nav(true)">Sí</button>
+  <button id="n_off" onclick="nav(false)">No (ya está abierto)</button>
+ </div>
+ <label>Tiempo de carga: <b id="cv"></b> s</label>
+ <input id="carga" type="range" min="1" max="8" step="0.5" style="width:100%">
+ <div class="fila">
+  <button id="a_on" onclick="aviso(true)">Avisar "Guardado"</button>
+  <button id="a_off" onclick="aviso(false)">No avisar</button>
+ </div>
+ <div class="fila"><button onclick="enviar('prueba')">Probar (manda "prueba")</button></div>
+ <div id="res" style="font-size:13px;color:#555;margin:6px 0 0"></div>
+
+ <h3>Lapicera</h3>
+ <div class="estado" id="estL">No conectada</div>
+ <button class="grande" id="btnLap" onclick="conectarLapicera()">Conectar lapicera</button>
+ <div class="estado">
+  Última palabra: <b id="ulw">—</b>
+  <div style="font-size:13px;color:#666;margin-top:4px">Otras opciones (tocá una para mandarla):</div>
+  <div id="ulo" class="fila" style="flex-wrap:wrap"></div>
+ </div>
+ <label>Pausa para dar la palabra por terminada: <b id="pv"></b> s</label>
+ <input id="pausa" type="range" min="1" max="6" step="0.5" style="width:100%">
+ <div class="fila">
+  <input id="lpw" type="password" placeholder="Clave de la lapicera (si tiene)">
+  <button onclick="guardarClave()">Guardar</button>
+ </div>
+
+ <h3>Espectador</h3>
+ <button class="grande" onclick="nuevo()">Nuevo espectador (borrar vinculado)</button>
+ <button id="cerrar" onclick="cerrarAj()">Cerrar</button>
+</div></div>
+
+<script src="bridge.js"></script>
+<script>
+// ===================== ajustes guardados =====================
+let M='web',IP=false,CARGA=2.5,AV=true,NAV=true,BAR=1,PAUSA=2.5,PW='';
+const $=id=>document.getElementById(id);
+const nota=$('nota');
+try{
+ M=localStorage.getItem('m')||'web';if(['web','img','txt'].indexOf(M)<0)M='web';
+ IP=localStorage.getItem('i')==='1';CARGA=parseFloat(localStorage.getItem('c')||'2.5');
+ AV=localStorage.getItem('a')!=='0';NAV=localStorage.getItem('n')!=='0';BAR=parseInt(localStorage.getItem('b')||'1');
+ PAUSA=parseFloat(localStorage.getItem('pau')||'2.5');PW=localStorage.getItem('ppw')||'';
+ nota.value=localStorage.getItem('nota')||'';
+}catch(e){}
+let ultimaCant=(nota.value.match(/\n/g)||[]).length;
+function guardar(){try{localStorage.setItem('m',M);localStorage.setItem('i',IP?'1':'0');localStorage.setItem('c',CARGA);
+ localStorage.setItem('a',AV?'1':'0');localStorage.setItem('n',NAV?'1':'0');localStorage.setItem('b',BAR);
+ localStorage.setItem('pau',PAUSA);localStorage.setItem('ppw',PW);localStorage.setItem('nota',nota.value)}catch(e){}}
+function pintar(){
+ ['web','img','txt'].forEach(x=>$('m_'+x).className=(M==x?'on':''));
+ $('c_and').className=IP?'':'on';$('c_iph').className=IP?'on':'';
+ $('a_on').className=AV?'on':'';$('a_off').className=AV?'':'on';
+ [1,2,3].forEach(x=>$('b_'+x).className=(BAR==x?'on':''));
+ $('n_on').className=NAV?'on':'';$('n_off').className=NAV?'':'on';
+ $('carga').value=CARGA;$('cv').textContent=CARGA;
+ $('pausa').value=PAUSA;$('pv').textContent=PAUSA;
+}
+function modo(x){M=x;guardar();pintar()}
+function cel(x){IP=x;guardar();pintar()}
+function aviso(x){AV=x;guardar();pintar()}
+function nav(x){NAV=x;guardar();pintar()}
+function barra(x){BAR=x;guardar();pintar()}
+$('carga').oninput=e=>{CARGA=parseFloat(e.target.value);guardar();pintar()};
+$('pausa').oninput=e=>{PAUSA=parseFloat(e.target.value);guardar();pintar()};
+function guardarClave(){PW=$('lpw').value;guardar();if(pen.ok)penPedirEstado();avisoAbajo('Clave guardada',1500)}
+$('lpw').value=PW;
+
+// ===================== interfaz de "Notas" =====================
+const f=new Date();$('fecha').textContent=
+ f.toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'})+', '+f.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+let toques=0,tt=0;
+$('titulo').addEventListener('click',()=>{
+ toques++;clearTimeout(tt);tt=setTimeout(()=>toques=0,600);
+ if(toques>=3){toques=0;$('ajustes').style.display='flex';pintar();pintarEstados()}
+});
+function cerrarAj(){$('ajustes').style.display='none'}
+function limpiar(s){
+ return s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ñ/gi,'n')
+  .replace(/[^a-zA-Z0-9 .,'-]/g,'').replace(/\s+/g,' ').trim();
+}
+function lineaActual(){
+ const v=nota.value,c=(document.activeElement===nota)?nota.selectionStart:v.length;
+ let ini=v.lastIndexOf('\n',c-1)+1,fin=v.indexOf('\n',c);if(fin<0)fin=v.length;
+ let l=v.substring(ini,fin);
+ if(!limpiar(l)){const ls=v.split('\n').filter(x=>limpiar(x));l=ls.length?ls[ls.length-1]:''}
+ return l;
+}
+$('listo').addEventListener('pointerdown',e=>{e.preventDefault();const w=limpiar(lineaActual());if(w)enviar(w);nota.blur()});
+nota.addEventListener('input',()=>{
+ guardar();
+ const cant=(nota.value.match(/\n/g)||[]).length;
+ if(cant>ultimaCant){
+  const antes=nota.value.substring(0,nota.selectionStart).split('\n');
+  const w=limpiar(antes.length>=2?antes[antes.length-2]:'');
+  if(w)enviar(w);
+ }
+ ultimaCant=cant;
+});
+function avisoAbajo(txt,ms){const g=$('guardado');g.textContent=txt;g.classList.add('ver');setTimeout(()=>g.classList.remove('ver'),ms||2500)}
+function vibrar(p){try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
+
+// ===================== DISPOSITIVO (placa Mind Search) =====================
+const SVC='6d696e64-7365-6172-6368-000000000001',CMD='6d696e64-7365-6172-6368-000000000002',EST='6d696e64-7365-6172-6368-000000000003';
+const NOMBRE_PLACA='BT Keyboard 3.0';
+const enc=new TextEncoder(),dec=new TextDecoder();
+let placa=null,cmdCh=null,est={c:0,f:0,id:0,n:0,e:''},placaOk=false,reintento=0;
+let esperando=null;   // {n: comandos antes de mandar, id: envío antes de mandar}
+
+function hayBT(){return !!(navigator.bluetooth&&navigator.bluetooth.requestDevice)}
+async function conectarPlaca(){
+ if(!hayBT()){alert('Este navegador no tiene Bluetooth.\nAndroid: usá Chrome.\niPhone: abrí esta página con la app "Bluefy".');return}
+ try{
+  placa=await navigator.bluetooth.requestDevice({filters:[{name:NOMBRE_PLACA},{namePrefix:'BT Keyboard'}],optionalServices:[SVC]});
+  try{localStorage.setItem('placaId',placa.id)}catch(e){}
+  placa.addEventListener('gattserverdisconnected',()=>{placaOk=false;cmdCh=null;pintarEstados();setTimeout(reconectarPlaca,1000)});
+  await enlazarPlaca();
+ }catch(e){if(e.name!=='NotFoundError')alert('No se pudo conectar: '+e.message)}
+}
+async function enlazarPlaca(){
+ const g=await placa.gatt.connect();
+ const s=await g.getPrimaryService(SVC);
+ cmdCh=await s.getCharacteristic(CMD);
+ const ch=await s.getCharacteristic(EST);
+ ch.addEventListener('characteristicvaluechanged',e=>alEstado(dec.decode(e.target.value)));
+ await ch.startNotifications();
+ alEstado(dec.decode(await ch.readValue()));
+ placaOk=true;reintento=0;pintarEstados();
+}
+async function reconectarPlaca(){
+ if(!placa||placaOk)return;
+ try{await enlazarPlaca()}catch(e){reintento++;setTimeout(reconectarPlaca,Math.min(15000,1000*reintento))}
+}
+// al abrir la app, reconectar sola a la placa ya elegida (Chrome Android)
+(async()=>{
+ try{
+  if(!navigator.bluetooth||!navigator.bluetooth.getDevices)return;
+  const id=localStorage.getItem('placaId');const ds=await navigator.bluetooth.getDevices();
+  placa=ds.find(d=>d.id===id)||ds.find(d=>(d.name||'').startsWith('BT Keyboard'));
+  if(!placa)return;
+  placa.addEventListener('gattserverdisconnected',()=>{placaOk=false;cmdCh=null;pintarEstados();setTimeout(reconectarPlaca,1000)});
+  reconectarPlaca();
+ }catch(e){}
+})();
+async function mandarComando(txt){
+ const b=enc.encode(txt);
+ if(cmdCh.writeValueWithResponse)await cmdCh.writeValueWithResponse(b);else await cmdCh.writeValue(b);
+}
+const MOTIVO={bt:'Espectador NO conectado por Bluetooth',ocupado:'Todavía estaba escribiendo la anterior',vacio:'Palabra vacía'};
+async function enviar(w){
+ $('guardado').classList.remove('ver');
+ if(!placaOk||!cmdCh){$('res').textContent='Dispositivo no conectado';avisoAbajo('Sin conexión',2500);vibrar([60,80,60]);return}
+ $('res').textContent='Enviando "'+w+'"...';
+ esperando={n:est.n,id:est.id,t:Date.now()};
+ try{await mandarComando(['E',M,IP?1:0,NAV?1:0,BAR,Math.round(CARGA*1000),w].join('|'))}
+ catch(e){esperando=null;$('res').textContent='No se pudo mandar: '+e.message;avisoAbajo('No se pudo sincronizar',3000);vibrar([60,80,60])}
+}
+function alEstado(t){
+ try{est=JSON.parse(t)}catch(e){return}
+ pintarEstados();
+ if(!esperando)return;
+ if(est.n>esperando.n&&est.id===esperando.id&&est.e){       // la placa rechazó el envío
+  esperando=null;$('res').textContent='No se mandó: '+(MOTIVO[est.e]||est.e);
+  avisoAbajo('No se pudo sincronizar',3000);vibrar([60,80,60]);return;
+ }
+ if(est.id>esperando.id){
+  if(est.f===3){esperando=null;$('res').textContent='Listo: ya debería estar en pantalla';
+   if(AV){avisoAbajo('Guardado ✓',2500);vibrar(60)}}
+  else $('res').textContent='Escribiendo en el espectador...';
+ }
+}
+function nuevo(){
+ if(!placaOk){alert('Primero conectá el dispositivo');return}
+ if(!confirm('¿Cortar el celular del espectador actual y dejar libre para otro?'))return;
+ mandarComando('N').catch(()=>{});
+}
+function pintarEstados(){
+ const p=$('estP');
+ if(!hayBT())p.innerHTML='<span class="mal">Este navegador no tiene Bluetooth.</span> Android: Chrome. iPhone: app <b>Bluefy</b>.';
+ else if(!placaOk)p.innerHTML='<span class="mal">Dispositivo no conectado</span> (prendelo y tocá Conectar)';
+ else p.innerHTML='<span class="ok">Dispositivo conectado ✔</span><br>'+(est.c?'<span class="ok">Espectador conectado ✔</span>':'<span class="mal">Espectador NO conectado</span>');
+ $('btnPlaca').textContent=placaOk?'Cambiar de dispositivo':'Conectar dispositivo';
+ // puntito casi invisible en "Notas": verde si todo está listo
+ $('punto').style.background=(placaOk&&est.c)?'#e8e8e8':'transparent';
+ const L=$('estL');
+ L.innerHTML=pen.ok?('<span class="ok">Lapicera lista ✔</span>'+(pen.bat>=0?' · batería '+pen.bat+'%':''))
+  :(pen.estado?'<span class="mal">'+pen.estado+'</span>':'No conectada');
+ $('btnLap').textContent=pen.dev?'Conectar otra lapicera':'Conectar lapicera';
+}
+
+// ===================== LAPICERA (NeoLAB protocolo 2) =====================
+const PEN_SVC='4f99f138-9d53-5bfa-9e50-b147491afe68',PEN_NOT='64cd86b1-2256-5aeb-9f04-2caf6c60ae57',PEN_WR='8bc8cc7d-88ca-56b0-af9a-9bf514d0d61a';
+const PEN_SVC16=0x19F1,PEN_NOT16=0x2BA1,PEN_WR16=0x2BA0;
+const pen={dev:null,wr:null,ok:false,auth:false,bat:-1,hover:false,abajo:false,estado:'',buf:null,esc:false};
+let trazos=[],t0=0,tUlt=0,timerPal=0;
+
+async function conectarLapicera(){
+ if(!hayBT()){pintarEstados();return}
+ try{
+  pen.dev=await navigator.bluetooth.requestDevice({filters:[{services:[PEN_SVC]},{services:[PEN_SVC16]},{namePrefix:'Neo'},{namePrefix:'NWP'},{namePrefix:'Smartpen'}],
+   optionalServices:[PEN_SVC,PEN_SVC16]});
+  try{localStorage.setItem('penId',pen.dev.id)}catch(e){}
+  pen.dev.addEventListener('gattserverdisconnected',()=>{pen.ok=false;pen.wr=null;pen.estado='Lapicera desconectada (reconectando...)';pintarEstados();setTimeout(reconectarPen,1500)});
+  await enlazarPen();
+ }catch(e){if(e.name!=='NotFoundError')alert('No se pudo conectar la lapicera: '+e.message)}
+}
+async function enlazarPen(){
+ pen.estado='Conectando...';pintarEstados();
+ const g=await pen.dev.gatt.connect();
+ let nt,wr;
+ try{const s=await g.getPrimaryService(PEN_SVC);nt=await s.getCharacteristic(PEN_NOT);wr=await s.getCharacteristic(PEN_WR)}
+ catch(e){const s=await g.getPrimaryService(PEN_SVC16);nt=await s.getCharacteristic(PEN_NOT16);wr=await s.getCharacteristic(PEN_WR16)}
+ pen.wr=wr;pen.auth=false;pen.buf=null;
+ nt.addEventListener('characteristicvaluechanged',e=>penDatos(new Uint8Array(e.target.value.buffer)));
+ await nt.startNotifications();
+ pen.estado='Preparando...';pintarEstados();
+ setTimeout(penPedirVersion,400);
+}
+async function reconectarPen(){
+ if(!pen.dev||pen.ok)return;
+ try{await enlazarPen()}catch(e){setTimeout(reconectarPen,4000)}
+}
+(async()=>{   // reconectar sola a la lapicera ya elegida
+ try{
+  if(!navigator.bluetooth||!navigator.bluetooth.getDevices)return;
+  const id=localStorage.getItem('penId');if(!id)return;
+  const d=(await navigator.bluetooth.getDevices()).find(x=>x.id===id);if(!d)return;
+  pen.dev=d;d.addEventListener('gattserverdisconnected',()=>{pen.ok=false;pen.wr=null;setTimeout(reconectarPen,1500)});
+  reconectarPen();
+ }catch(e){}
+})();
+let colaPen=Promise.resolve();
+function penEnviar(cmd,datos){
+ if(!pen.wr)return;
+ const out=[0xC0];
+ const put=b=>{if(b===0xC0||b===0xC1||b===0x7D){out.push(0x7D,b^0x20)}else out.push(b)};
+ const n=datos?datos.length:0;
+ put(cmd);put(n&255);put(n>>8);
+ for(let i=0;i<n;i++)put(datos[i]);
+ out.push(0xC1);
+ const b=new Uint8Array(out);
+ colaPen=colaPen.then(()=>pen.wr.writeValueWithoutResponse?pen.wr.writeValueWithoutResponse(b):pen.wr.writeValue(b)).catch(()=>{});
+}
+function penPedirVersion(){
+ const d=new Uint8Array(42);d[16]=0xF0;d[17]=0x01;
+ enc.encode('0.0.0.0').forEach((b,i)=>d[18+i]=b);enc.encode('2.18').forEach((b,i)=>d[34+i]=b);
+ penEnviar(0x01,d);
+ setTimeout(()=>{if(!pen.ok&&pen.wr&&pen.estado==='Preparando...')penPedirVersion()},4000);
+}
+function penPedirEstado(){penEnviar(0x04,null)}
+function penPedirClave(){const d=new Uint8Array(16);enc.encode(PW).slice(0,16).forEach((b,i)=>d[i]=b);penEnviar(0x02,d)}
+function penOnline(){penEnviar(0x11,new Uint8Array([0xFF,0xFF]))}
+function penDatos(a){
+ for(const v of a){
+  let b=v;
+  if(b===0xC0){pen.buf=[];pen.esc=false;continue}
+  if(!pen.buf)continue;
+  if(b===0xC1){penPaquete(pen.buf);pen.buf=null;continue}
+  if(b===0x7D&&!pen.esc){pen.esc=true;continue}
+  if(pen.esc){b^=0x20;pen.esc=false}
+  if(pen.buf.length<700)pen.buf.push(b);
+ }
+}
+function penPaquete(p){
+ if(p.length<3)return;
+ const cmd=p[0];let o=1,res=0;
+ const conRes=(cmd>>4)!==6&&cmd!==0x73&&cmd!==0x24&&cmd!==0x32;
+ if(conRes)res=p[o++];
+ o+=2;const d=p.slice(o);
+ if(conRes&&res!==0)return;
+ switch(cmd){
+  case 0x81:penPedirEstado();break;
+  case 0x84:
+   if(d.length>=21){pen.bat=d[20];pen.hover=d[19]===1}
+   if(!pen.auth){
+    if(d[0]===1){if(PW)penPedirClave();else{pen.estado='La lapicera pide clave: escribila abajo';pintarEstados()}}
+    else{pen.auth=true;penOnline()}
+   }
+   pintarEstados();break;
+  case 0x82:
+   if(d[0]===1){pen.auth=true;penOnline()}else{pen.estado='Clave incorrecta';pintarEstados()}
+   break;
+  case 0x91:pen.ok=true;pen.estado='';pintarEstados();break;
+  case 0x69:penBaja();break;
+  case 0x6A:penSube();break;
+  case 0x63:if(d.length>=1){d[0]===0?penBaja():penSube()}break;
+  case 0x65:case 0x6C:{
+   const k=cmd===0x6C?1:0;
+   if(d.length<k+9)break;
+   const x=d[k+3]|(d[k+4]<<8),y=d[k+5]|(d[k+6]<<8);
+   if(!pen.abajo){if(pen.hover)break;penBaja()}
+   penPunto(x*100+d[k+7],y*100+d[k+8]);
+   break;}
+ }
+}
+// --- trazos ---
+function penBaja(){pen.abajo=true;if(!trazos.length)t0=Date.now();trazos.push([]);tUlt=Date.now();clearTimeout(timerPal)}
+function penSube(){pen.abajo=false;tUlt=Date.now();clearTimeout(timerPal);timerPal=setTimeout(fin,PAUSA*1000)}
+function penPunto(x,y){
+ const s=trazos[trazos.length-1];if(!s)return;
+ const t=Date.now()-t0;tUlt=Date.now();
+ const u=s[s.length-1];
+ if(u&&Math.abs(u[0]-x)+Math.abs(u[1]-y)<8)return;   // ~0,2 mm
+ s.push([x,y,t]);
+}
+async function fin(){
+ const st=trazos.filter(s=>s.length>0);trazos=[];
+ const pts=st.reduce((a,s)=>a+s.length,0);
+ if(pts<4)return;
+ const r=await reconocer(st);
+ if(!r||!r.length){$('ulw').textContent='(no se entendió)';return}
+ const w=limpiar(r[0]);
+ $('ulw').textContent=w;
+ const ul=$('ulo');ul.innerHTML='';
+ r.slice(1,6).map(limpiar).filter((x,i,a)=>x&&x.toLowerCase()!==w.toLowerCase()&&a.indexOf(x)===i).forEach(x=>{
+  const b=document.createElement('button');b.textContent=x;b.onclick=()=>{$('ulw').textContent=x;enviar(x)};ul.appendChild(b)});
+ if(w)enviar(w);
+}
+async function reconocer(st){
+ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ st.forEach(s=>s.forEach(([x,y])=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}));
+ // ¿hoja al revés? la mano avanza hacia la derecha con el tiempo
+ const all=st.flat();const mt=all.reduce((a,p)=>a+p[2],0)/all.length,mx=all.reduce((a,p)=>a+p[0],0)/all.length;
+ const cov=all.reduce((a,p)=>a+(p[2]-mt)*(p[0]-mx),0);
+ const rot=cov<0;
+ const ink=st.map(s=>{
+  const X=[],Y=[],T=[];
+  s.forEach(([x,y,t])=>{X.push(Math.round((rot?x1-x:x-x0)+10));Y.push(Math.round((rot?y1-y:y-y0)+10));T.push(t)});
+  return[X,Y,T];
+ });
+ const body={app_version:0.4,api_level:'537.36',device:navigator.userAgent,input_type:0,options:'enable_pre_space',
+  requests:[{writing_guide:{writing_area_width:x1-x0+20,writing_area_height:y1-y0+20},pre_context:'',max_num_results:6,max_completions:0,language:'es',ink}]};
+ try{
+  const r=await fetch('https://inputtools.google.com/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8',
+   {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json();
+  if(j[0]!=='SUCCESS')return null;
+  return j[1][0][1];
+ }catch(e){$('ulw').textContent='(sin internet en este celu)';return null}
+}
+
+pintar();pintarEstados();
+setInterval(()=>{if($('ajustes').style.display==='flex')pintarEstados()},1500);
+</script></body></html>
