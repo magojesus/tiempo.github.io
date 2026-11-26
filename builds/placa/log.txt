@@ -1,0 +1,6 @@
++ curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh
++ BINDIR=/home/runner/bin
++ sh
+/home/runner/bin ($BINDIR) folder not found. Please create it before continuing.
+Failed to install arduino-cli
+/home/runner/work/_temp/6440df7b-f4ca-49e7-b00f-278c78aab289.sh: line 3: arduino-cli: command not found
