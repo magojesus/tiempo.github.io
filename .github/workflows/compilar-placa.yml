@@ -1,0 +1,43 @@
+name: Compilar placa Mind Search
+on:
+  push:
+    branches: [app-android]
+    paths: ['placa/**', '.github/workflows/compilar-placa.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar arduino-cli, ESP32 y librerias
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=$HOME/bin sh
+          export PATH=$HOME/bin:$PATH
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@3.3.4 || arduino-cli core install esp32:esp32
+          arduino-cli lib install "NimBLE-Arduino@2.3.8" || arduino-cli lib install "NimBLE-Arduino"
+          arduino-cli lib install "HijelHID_BLEKeyboard@0.6.0" || arduino-cli lib install "HijelHID_BLEKeyboard"
+          D=$(dirname $(find $HOME/Arduino/libraries -name HijelHID_BLEKeyboard.cpp | head -1))
+          cp placa/hijelhid_patch/HijelHID_BLEKeyboard.* "$D/"
+          arduino-cli core list > placa_log.txt; arduino-cli lib list >> placa_log.txt
+      - name: Compilar
+        continue-on-error: true
+        run: |
+          export PATH=$HOME/bin:$PATH
+          mkdir -p out
+          arduino-cli compile --fqbn esp32:esp32:esp32c3:CDCOnBoot=cdc,PartitionScheme=huge_app --output-dir out placa/foto_magica 2>&1 | tee -a placa_log.txt
+      - name: Guardar resultado
+        if: always()
+        run: |
+          mkdir -p builds/placa
+          cp placa_log.txt builds/placa/log.txt || true
+          cp out/foto_magica.ino.merged.bin builds/placa/ 2>/dev/null || true
+          cp out/foto_magica.ino.bin builds/placa/ 2>/dev/null || true
+          git config user.name "build-bot"; git config user.email "build-bot@users.noreply.github.com"
+          git add -f builds
+          git commit -m "builds placa [skip ci]" || true
+          for i in 1 2 3 4 5; do git pull --rebase -q origin app-android && git push && break; sleep 5; done

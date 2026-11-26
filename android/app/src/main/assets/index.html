@@ -38,6 +38,23 @@
  .ok{color:#1a8f3a} .mal{color:#c62828}
  input[type=password]{flex:1;font-size:15px;padding:10px;border:0;border-radius:10px}
  #cerrar{width:100%;margin-top:14px;background:#1c1c1e!important;color:#fff!important}
+ .grilla{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+ .ayudita{font-size:13px;color:#666;background:#fff;border-radius:10px;padding:10px;margin:6px 0;line-height:1.4}
+ input.num{flex:1;font-size:15px;padding:10px;border:0;border-radius:10px}
+ #btnAyuda{width:100%;background:#e0a800!important;color:#fff!important;font-weight:600}
+ #ayuda{display:none;position:fixed;inset:0;background:#fff;z-index:9;overflow-y:auto;-webkit-overflow-scrolling:touch}
+ #ayudaIn{padding:calc(env(safe-area-inset-top) + 10px) 18px 40px;font-size:15px;line-height:1.5;color:#1c1c1e}
+ #ayudaTop{position:sticky;top:0;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;font-size:17px}
+ #ayudaTop span{color:#e0a800;font-weight:600;cursor:pointer}
+ #ayuda details{background:#f2f2f7;border-radius:12px;margin:12px 0;padding:4px 14px}
+ #ayuda summary{font-weight:700;font-size:16px;padding:10px 0;cursor:pointer}
+ #ayuda h4{margin:18px 0 4px;font-size:16px}
+ #ayuda p{margin:6px 0}
+ #ayuda ol,#ayuda ul{padding-left:20px;margin:6px 0}
+ #ayuda li{margin:5px 0}
+ #ayuda .intro{color:#444;margin:14px 0}
+ #ayuda .tip{background:#fff7d6;border-radius:8px;padding:8px 10px;font-size:14px}
+ #ayudaOk{width:100%;font-size:16px;padding:14px;border:0;border-radius:12px;background:#1c1c1e;color:#fff;margin-top:10px}
 </style></head><body>
 <div id="barra">
  <div id="atras">&#x2039; Carpetas</div>
@@ -51,26 +68,53 @@
 <div id="guardado">Guardado &#10003;</div>
 
 <div id="ajustes"><div id="panel">
+ <button class="grande" id="btnAyuda" onclick="abrirAyuda()">📖 Instrucciones</button>
  <h3>Dispositivo</h3>
  <div class="estado" id="estP">...</div>
  <button class="grande" id="btnPlaca" onclick="conectarPlaca()">Conectar dispositivo</button>
 
- <h3>Qué abre en el espectador</h3>
- <div class="fila">
-  <button id="m_web" onclick="modo('web')">Google</button>
-  <button id="m_img" onclick="modo('img')">Fotos</button>
-  <button id="m_txt" onclick="modo('txt')">Solo texto</button>
+ <h3>Efecto</h3>
+ <div class="grilla">
+  <button id="m_web" onclick="modo('web')">🔎 Google</button>
+  <button id="m_img" onclick="modo('img')">🖼️ Fotos</button>
+  <button id="m_cum" onclick="modo('cum')">🎂 Cumpleaños</button>
+  <button id="m_yt" onclick="modo('yt')">🎵 YouTube</button>
+  <button id="m_map" onclick="modo('map')">🗺️ Mapa</button>
+  <button id="m_msg" onclick="modo('msg')">💬 Mensaje</button>
+  <button id="m_calc" onclick="modo('calc')">🧮 Calculadora</button>
+  <button id="m_tele" onclick="modo('tele')">✨ Telequinesis</button>
+  <button id="m_cam" onclick="modo('cam')">📸 Foto fantasma</button>
+  <button id="m_txt" onclick="modo('txt')">✏️ Solo texto</button>
+ </div>
+ <div class="ayudita" id="ayModo"></div>
+ <div id="bloqCalc">
+  <label>Número final (el que tiene que dar la cuenta)</label>
+  <div class="fila"><input id="obj" class="num" type="text" inputmode="numeric" placeholder="Ej: 25112026"></div>
+ </div>
+ <div id="bloqTele">
+  <label>Cuánto sube o baja el volumen: <b id="psv"></b> pasos</label>
+  <input id="pasos" type="range" min="1" max="15" step="1" style="width:100%">
+  <div class="grilla">
+   <button onclick="tecla('VU',PASOS)">🔊 Subir</button>
+   <button onclick="tecla('VD',PASOS)">🔉 Bajar</button>
+   <button onclick="tecla('PP',1)">⏯️ Pausa / Play</button>
+   <button onclick="tecla('MU',1)">🔇 Silencio</button>
+   <button onclick="tecla('PV',1)">⏮️ Anterior</button>
+   <button onclick="tecla('NX',1)">⏭️ Siguiente</button>
+  </div>
+  <button class="grande" onclick="tecla('FO',1)">📸 Sacar foto</button>
  </div>
  <label>Celular del espectador</label>
  <div class="fila">
   <button id="c_and" onclick="cel(false)">Android</button>
   <button id="c_iph" onclick="cel(true)">iPhone</button>
  </div>
- <label>Cómo ir a la barra (Android) — probá cuál anda en Chrome</label>
+ <div id="bloqNav">
+ <label>Método para el buscador (Android): probá cuál anda en su celu</label>
  <div class="fila">
-  <button id="b_1" onclick="barra(1)">Ctrl+L</button>
-  <button id="b_2" onclick="barra(2)">Alt+D</button>
-  <button id="b_3" onclick="barra(3)">Tecla Buscar</button>
+  <button id="b_1" onclick="barra(1)">Método 1</button>
+  <button id="b_2" onclick="barra(2)">Método 2</button>
+  <button id="b_3" onclick="barra(3)">Método 3</button>
  </div>
  <label>Abrir el navegador solo (Android)</label>
  <div class="fila">
@@ -79,11 +123,12 @@
  </div>
  <label>Tiempo de carga: <b id="cv"></b> s</label>
  <input id="carga" type="range" min="1" max="8" step="0.5" style="width:100%">
+ </div>
  <div class="fila">
   <button id="a_on" onclick="aviso(true)">Avisar "Guardado"</button>
   <button id="a_off" onclick="aviso(false)">No avisar</button>
  </div>
- <div class="fila"><button onclick="enviar('prueba')">Probar (manda "prueba")</button></div>
+ <div class="fila"><button onclick="probar()">Probar el efecto</button></div>
  <div id="res" style="font-size:13px;color:#555;margin:6px 0 0"></div>
 
  <h3>Lapicera</h3>
@@ -106,14 +151,141 @@
  <button id="cerrar" onclick="cerrarAj()">Cerrar</button>
 </div></div>
 
+<div id="ayuda"><div id="ayudaIn">
+ <div id="ayudaTop"><b>Instrucciones · Mind Search</b><span onclick="cerrarAyuda()">Cerrar ✕</span></div>
+
+ <p class="intro">Mind Search hace aparecer en el celular del espectador lo que vos elegís: una búsqueda, una foto, una canción, un lugar, un mensaje o un número. Vos solo escribís en esta app, que parece una nota común.</p>
+
+ <details open><summary>1 · Primera vez: preparar todo</summary>
+  <ol>
+   <li><b>Prendé el dispositivo</b> Mind Search con su llavecita.</li>
+   <li>En <b>tu</b> celular abrí esta app y tocá <b>3 veces seguidas</b> la palabra <b>"Notas"</b> de arriba. Se abren los <b>ajustes secretos</b>.</li>
+   <li>Tocá <b>"Conectar dispositivo"</b> y elegí <b>Mind Search</b> en la lista. Tiene que decir <span class="ok">Dispositivo conectado ✔</span>.<br><small>iPhone: esta app se usa desde el navegador <b>Bluefy</b> (gratis en el App Store). Android: desde esta app o desde Chrome.</small></li>
+   <li>En el <b>celular del espectador</b>: <b>Ajustes › Bluetooth</b> › tocar <b>"Mind Search"</b> › <b>Vincular</b>. No pide código.</li>
+   <li>Volvé a los ajustes secretos: tiene que decir <span class="ok">Espectador conectado ✔</span>.</li>
+   <li>Elegí en <b>"Celular del espectador"</b> si es <b>Android</b> o <b>iPhone</b>, y elegí el <b>efecto</b>.</li>
+   <li>Tocá <b>Cerrar</b>. Ya estás en la nota: todo listo.</li>
+  </ol>
+  <p class="tip">Señal secreta: cuando todo está conectado, al lado de la palabra "Notas" aparece un puntito gris casi invisible. Si no está, algo se desconectó.</p>
+ </details>
+
+ <details><summary>2 · Cómo mandar algo</summary>
+  <ul>
+   <li>Escribí la palabra en la nota y tocá <b>Enter</b> (salto de línea) en tu celular, <b>o</b> tocá <b>OK</b> arriba a la derecha (manda la línea donde está el cursor).</li>
+   <li>Cuando ya apareció en el celu del espectador, abajo aparece <b>"Guardado ✓"</b> y tu celu vibra (Android). Así sabés que podés hacer la revelación sin mirar.</li>
+   <li>Si sale <b>"Sin conexión"</b> o <b>"No se pudo sincronizar"</b>, abrí los ajustes secretos y mirá qué está desconectado.</li>
+   <li>Escribí sin tildes ni signos: "Paris", "Leonel Messi", "Torre Eiffel".</li>
+  </ul>
+ </details>
+
+ <details><summary>3 · Los efectos, uno por uno</summary>
+
+  <h4>🔎 Google</h4>
+  <p><b>Qué pasa:</b> en el celu del espectador se busca en Google lo que pensó, solo, y en el buscador queda únicamente esa palabra, como si la hubiera buscado él.</p>
+  <p><b>Preparación:</b> Android: Chrome abierto (o activá "Abrir el navegador solo"). iPhone: Safari abierto en cualquier página.</p>
+  <p><b>Rutina:</b> el espectador piensa algo (un país, un animal, un famoso). Le pedís que te lo susurre, que lo escriba con la lapicera, o lo adivinás vos. Escribís la palabra en tu nota y él ve en su celu la búsqueda hecha.</p>
+
+  <h4>🖼️ Fotos</h4>
+  <p><b>Qué pasa:</b> igual que Google, pero se abren directamente las <b>imágenes</b> de lo que pensó. En tu nota solo se ve la palabra: nadie sabe que pediste fotos.</p>
+  <p><b>Ideal para:</b> lugares, animales, comidas, autos, personas famosas.</p>
+
+  <h4>🎂 Cumpleaños famoso</h4>
+  <p><b>Qué pasa:</b> en su celu aparecen los <b>famosos que nacieron el mismo día</b> que el espectador.</p>
+  <p><b>Rutina:</b> le preguntás (o hacés que escriba con la lapicera) su fecha de cumpleaños. En tu nota escribís el día y el mes así: <b>14 de marzo</b>. Su celu muestra "famosos nacidos el 14 de marzo".</p>
+  <p class="tip">Cierre lindo: "Mirá con quién compartís el día… ¿sabías que tu destino estaba escrito?"</p>
+
+  <h4>🎵 YouTube</h4>
+  <p><b>Qué pasa:</b> la canción que el espectador pensó aparece buscada en su YouTube, lista para sonar.</p>
+  <p><b>Preparación:</b> pedile que abra <b>YouTube</b> y que toque la <b>lupa</b> 🔍 (que quede el cursor titilando en el buscador).</p>
+  <p><b>Qué escribís:</b> el nombre de la canción, y si querés el artista: <b>de musica ligera soda stereo</b>. Aparece buscada y él toca el primer video.</p>
+
+  <h4>🗺️ Mapa</h4>
+  <p><b>Qué pasa:</b> el lugar que soñó conocer aparece en su <b>Google Maps</b>.</p>
+  <p><b>Preparación:</b> que abra <b>Google Maps</b> y toque el buscador de arriba ("Buscá aquí"), con el cursor titilando.</p>
+  <p><b>Qué escribís:</b> el lugar: <b>Torre Eiffel</b>, <b>Machu Picchu</b>, <b>Bariloche</b>. El mapa vuela hasta ahí.</p>
+
+  <h4>💬 Mensaje</h4>
+  <p><b>Qué pasa:</b> en su WhatsApp (o cualquier chat) se escribe solo un mensaje con lo que pensó, y se envía desde su propio celular.</p>
+  <p><b>Preparación:</b> que abra un chat (por ejemplo el tuyo) y toque la cajita de escribir, con el cursor titilando. Hacelo siempre <b>con su permiso</b> y a un chat que él elija o al tuyo.</p>
+  <p><b>Qué escribís:</b> el mensaje: <b>Pensaste en tu abuela Rosa</b>.</p>
+  <p class="tip">Si en algún celular el mensaje queda escrito pero no se envía, pedile al espectador que toque enviar: el efecto es igual de fuerte.</p>
+
+  <h4>🧮 Calculadora</h4>
+  <p><b>Qué pasa:</b> varias personas suman números al azar en la calculadora del espectador y el total da un número que vos predijiste (la fecha de hoy, la hora, un número que estaba escrito en un sobre…).</p>
+  <p><b>Preparación:</b> en los ajustes secretos poné el <b>"Número final"</b> que querés que salga. El espectador abre la <b>Calculadora</b> de su celu.</p>
+  <p><b>Rutina:</b></p>
+  <ol>
+   <li>Distintas personas dicen números y el espectador los va sumando (+).</li>
+   <li>Cuando terminan, que toque <b>=</b> . Mirá de reojo el total que quedó en la pantalla.</li>
+   <li>Escribí ese total en tu nota y tocá Enter. Su celu suma solo el número que falta y el resultado es tu número final.</li>
+  </ol>
+  <p class="tip">Si no ponés "Número final", lo que escribas se manda tal cual: podés escribir por ejemplo <b>+137=</b>.</p>
+
+  <h4>✨ Telequinesis</h4>
+  <p><b>Qué pasa:</b> el espectador sostiene su celu y, mientras se concentra, el <b>volumen sube o baja solo</b>, la música se <b>pausa</b> o arranca, o queda en <b>silencio</b>.</p>
+  <p><b>Preparación:</b> que ponga una canción o un video en su celu (YouTube, Spotify, lo que sea).</p>
+  <p><b>Qué escribís en la nota</b> (una orden por línea, y Enter):</p>
+  <ul>
+   <li><b>subir</b> → sube el volumen de a poco (podés poner cuánto: <b>subir 5</b>)</li>
+   <li><b>bajar</b> → lo baja de a poco (<b>bajar 10</b>)</li>
+   <li><b>pausa</b> → pausa o vuelve a reproducir</li>
+   <li><b>silencio</b> → lo silencia (y otra vez lo vuelve a activar)</li>
+   <li><b>siguiente</b> / <b>anterior</b> → cambia de canción</li>
+  </ul>
+  <p class="tip">En la nota parece una lista común. Podés probar todo con los botones de los ajustes secretos.</p>
+
+  <h4>📸 Foto fantasma</h4>
+  <p><b>Qué pasa:</b> el espectador abre su cámara y la <b>foto se saca sola</b>, sin que nadie toque el celular.</p>
+  <p><b>Preparación:</b> que abra la <b>Cámara</b> (normal o selfie) y la sostenga.</p>
+  <p><b>Qué hacés:</b> cuando quieras, tocá <b>Enter</b> u <b>OK</b> en tu nota (o escribí <b>foto</b>). Se saca una foto. Para sacar varias seguidas escribí <b>foto 3</b>.</p>
+  <p class="tip">Contá "1… 2… 3…" en voz alta y mandá en el 3. O hacé que la foto se saque justo cuando el espectador "piensa" en sacarla.</p>
+
+  <h4>✏️ Solo texto</h4>
+  <p><b>Qué pasa:</b> la palabra aparece escrita donde esté el cursor del espectador (en sus Notas, en un buscador, donde sea), sin buscar ni enviar nada.</p>
+ </details>
+
+ <details><summary>4 · Lapicera</summary>
+  <ul>
+   <li>En los ajustes secretos tocá <b>"Conectar lapicera"</b> y elegí tu lapicera. Tiene que decir <span class="ok">Lapicera lista ✔</span>.</li>
+   <li>El espectador escribe en el papel. Cuando deja de escribir unos segundos, la palabra se reconoce y se manda sola con el efecto elegido. Vos no tocás nada.</li>
+   <li>Funciona con: Google, Fotos, Cumpleaños, YouTube, Mapa, Mensaje y Solo texto.</li>
+   <li><b>"Pausa para dar la palabra por terminada"</b>: cuántos segundos espera después del último trazo.</li>
+   <li>Si entendió mal, en "Otras opciones" tocá la palabra correcta y se manda esa.</li>
+   <li>Tu celu necesita internet para entender la letra.</li>
+  </ul>
+ </details>
+
+ <details><summary>5 · Entre un espectador y otro</summary>
+  <ul>
+   <li>Al terminar con un espectador, en los ajustes secretos tocá <b>"Nuevo espectador"</b>. Su celular queda desconectado y el dispositivo queda libre para vincular otro.</li>
+   <li>El nuevo espectador hace lo mismo: <b>Ajustes › Bluetooth › Mind Search › Vincular</b>.</li>
+  </ul>
+ </details>
+
+ <details><summary>6 · Si algo no anda</summary>
+  <ul>
+   <li><b>"Dispositivo no conectado":</b> fijate que esté prendido y cargado, y tocá "Conectar dispositivo".</li>
+   <li><b>"Espectador NO conectado":</b> en su celu, Ajustes › Bluetooth, que "Mind Search" diga <b>Conectado</b>. Si lo había vinculado antes y no conecta: tocá la (i) o el engranaje › <b>Olvidar</b> y vinculalo de nuevo.</li>
+   <li><b>Android: no aparece la búsqueda</b> en Google/Fotos/Cumpleaños: en "Método para el buscador" probá <b>Método 1, 2 o 3</b> hasta que ande con su celu (se prueba con el botón "Probar").</li>
+   <li><b>iPhone:</b> tiene que estar Safari abierto en una página, y la pantalla desbloqueada.</li>
+   <li><b>YouTube / Mapa / Mensaje / Solo texto:</b> el cursor tiene que estar titilando en el lugar donde va a aparecer.</li>
+   <li><b>Tarda en cargar la foto:</b> subí el "Tiempo de carga" para que "Guardado ✓" aparezca cuando ya se ve.</li>
+   <li><b>Cargar el dispositivo:</b> enchufalo por el lado del ⚡.</li>
+  </ul>
+ </details>
+ <button id="ayudaOk" onclick="cerrarAyuda()">Entendido</button>
+</div></div>
+
 <script src="bridge.js"></script>
 <script>
 // ===================== ajustes guardados =====================
-let M='web',IP=false,CARGA=2.5,AV=true,NAV=true,BAR=1,PAUSA=2.5,PW='';
+let M='web',IP=false,CARGA=2.5,AV=true,NAV=true,BAR=1,PAUSA=2.5,PW='',OBJ='',PASOS=8;
+const MODOS=['web','img','cum','yt','map','msg','calc','tele','cam','txt'];
 const $=id=>document.getElementById(id);
 const nota=$('nota');
 try{
- M=localStorage.getItem('m')||'web';if(['web','img','txt'].indexOf(M)<0)M='web';
+ M=localStorage.getItem('m')||'web';if(MODOS.indexOf(M)<0)M='web';
+ OBJ=localStorage.getItem('obj')||'';PASOS=parseInt(localStorage.getItem('pasos')||'8');
  IP=localStorage.getItem('i')==='1';CARGA=parseFloat(localStorage.getItem('c')||'2.5');
  AV=localStorage.getItem('a')!=='0';NAV=localStorage.getItem('n')!=='0';BAR=parseInt(localStorage.getItem('b')||'1');
  PAUSA=parseFloat(localStorage.getItem('pau')||'2.5');PW=localStorage.getItem('ppw')||'';
@@ -122,9 +294,14 @@ try{
 let ultimaCant=(nota.value.match(/\n/g)||[]).length;
 function guardar(){try{localStorage.setItem('m',M);localStorage.setItem('i',IP?'1':'0');localStorage.setItem('c',CARGA);
  localStorage.setItem('a',AV?'1':'0');localStorage.setItem('n',NAV?'1':'0');localStorage.setItem('b',BAR);
- localStorage.setItem('pau',PAUSA);localStorage.setItem('ppw',PW);localStorage.setItem('nota',nota.value)}catch(e){}}
+ localStorage.setItem('pau',PAUSA);localStorage.setItem('obj',OBJ);localStorage.setItem('pasos',PASOS);localStorage.setItem('ppw',PW);localStorage.setItem('nota',nota.value)}catch(e){}}
 function pintar(){
- ['web','img','txt'].forEach(x=>$('m_'+x).className=(M==x?'on':''));
+ MODOS.forEach(x=>$('m_'+x).className=(M==x?'on':''));
+ $('ayModo').innerHTML=AYM[M];
+ $('bloqCalc').style.display=M==='calc'?'':'none';
+ $('bloqTele').style.display=(M==='tele'||M==='cam')?'':'none';
+ $('bloqNav').style.display=(M==='web'||M==='img'||M==='cum')?'':'none';
+ $('pasos').value=PASOS;$('psv').textContent=PASOS;$('obj').value=OBJ;
  $('c_and').className=IP?'':'on';$('c_iph').className=IP?'on':'';
  $('a_on').className=AV?'on':'';$('a_off').className=AV?'':'on';
  [1,2,3].forEach(x=>$('b_'+x).className=(BAR==x?'on':''));
@@ -138,6 +315,20 @@ function aviso(x){AV=x;guardar();pintar()}
 function nav(x){NAV=x;guardar();pintar()}
 function barra(x){BAR=x;guardar();pintar()}
 $('carga').oninput=e=>{CARGA=parseFloat(e.target.value);guardar();pintar()};
+$('pasos').oninput=e=>{PASOS=parseInt(e.target.value);guardar();pintar()};
+$('obj').oninput=e=>{OBJ=e.target.value.replace(/[^0-9]/g,'');guardar()};
+const AYM={
+ web:'<b>Google:</b> escribí la palabra y en su celu se busca en Google. Su navegador tiene que estar abierto.',
+ img:'<b>Fotos:</b> se abren las imágenes de la palabra. En tu nota solo se ve la palabra.',
+ cum:'<b>Cumpleaños:</b> escribí la fecha así: <b>14 de marzo</b>. Aparecen los famosos nacidos ese día.',
+ yt:'<b>YouTube:</b> que abra YouTube y toque la lupa. Escribí la canción (y el artista).',
+ map:'<b>Mapa:</b> que abra Google Maps y toque el buscador. Escribí el lugar.',
+ msg:'<b>Mensaje:</b> que abra un chat y toque la cajita de escribir. Escribí el mensaje: se escribe y se envía solo.',
+ calc:'<b>Calculadora:</b> cuando terminen de sumar y toquen =, escribí el total que ves en su pantalla. Su celu completa la cuenta hasta tu número final.',
+ tele:'<b>Telequinesis:</b> escribí en la nota <b>subir</b>, <b>bajar</b>, <b>pausa</b>, <b>silencio</b>, <b>siguiente</b> o <b>anterior</b> (y Enter). Ej: <b>subir 5</b>.',
+ cam:'<b>Foto fantasma:</b> que abra la cámara. Tocá Enter u OK en tu nota y la foto se saca sola. <b>foto 3</b> saca tres.',
+ txt:'<b>Solo texto:</b> la palabra aparece donde esté su cursor, sin buscar ni enviar.'
+};
 $('pausa').oninput=e=>{PAUSA=parseFloat(e.target.value);guardar();pintar()};
 function guardarClave(){PW=$('lpw').value;guardar();if(pen.ok)penPedirEstado();avisoAbajo('Clave guardada',1500)}
 $('lpw').value=PW;
@@ -151,6 +342,8 @@ $('titulo').addEventListener('click',()=>{
  if(toques>=3){toques=0;$('ajustes').style.display='flex';pintar();pintarEstados()}
 });
 function cerrarAj(){$('ajustes').style.display='none'}
+function abrirAyuda(){$('ayuda').style.display='block';$('ayuda').scrollTop=0}
+function cerrarAyuda(){$('ayuda').style.display='none';try{localStorage.setItem('vistoAyuda','1')}catch(e){}}
 function limpiar(s){
  return s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ñ/gi,'n')
   .replace(/[^a-zA-Z0-9 .,'-]/g,'').replace(/\s+/g,' ').trim();
@@ -162,14 +355,14 @@ function lineaActual(){
  if(!limpiar(l)){const ls=v.split('\n').filter(x=>limpiar(x));l=ls.length?ls[ls.length-1]:''}
  return l;
 }
-$('listo').addEventListener('pointerdown',e=>{e.preventDefault();const w=limpiar(lineaActual());if(w)enviar(w);nota.blur()});
+$('listo').addEventListener('pointerdown',e=>{e.preventDefault();const l=lineaActual();if(limpiar(l)||M==='cam'||M==='calc')enviar(l);nota.blur()});
 nota.addEventListener('input',()=>{
  guardar();
  const cant=(nota.value.match(/\n/g)||[]).length;
  if(cant>ultimaCant){
   const antes=nota.value.substring(0,nota.selectionStart).split('\n');
-  const w=limpiar(antes.length>=2?antes[antes.length-2]:'');
-  if(w)enviar(w);
+  const l=antes.length>=2?antes[antes.length-2]:'';
+  if(limpiar(l)||M==='cam'||M==='calc')enviar(l);
  }
  ultimaCant=cant;
 });
@@ -178,7 +371,7 @@ function vibrar(p){try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
 
 // ===================== DISPOSITIVO (placa Mind Search) =====================
 const SVC='6d696e64-7365-6172-6368-000000000001',CMD='6d696e64-7365-6172-6368-000000000002',EST='6d696e64-7365-6172-6368-000000000003';
-const NOMBRE_PLACA='BT Keyboard 3.0';
+const NOMBRE_PLACA='Mind Search';
 const enc=new TextEncoder(),dec=new TextDecoder();
 let placa=null,cmdCh=null,est={c:0,f:0,id:0,n:0,e:''},placaOk=false,reintento=0;
 let esperando=null;   // {n: comandos antes de mandar, id: envío antes de mandar}
@@ -187,7 +380,7 @@ function hayBT(){return !!(navigator.bluetooth&&navigator.bluetooth.requestDevic
 async function conectarPlaca(){
  if(!hayBT()){alert('Este navegador no tiene Bluetooth.\nAndroid: usá Chrome.\niPhone: abrí esta página con la app "Bluefy".');return}
  try{
-  placa=await navigator.bluetooth.requestDevice({filters:[{name:NOMBRE_PLACA},{namePrefix:'BT Keyboard'}],optionalServices:[SVC]});
+  placa=await navigator.bluetooth.requestDevice({filters:[{name:NOMBRE_PLACA},{namePrefix:'Mind Search'},{namePrefix:'BT Keyboard'}],optionalServices:[SVC]});
   try{localStorage.setItem('placaId',placa.id)}catch(e){}
   placa.addEventListener('gattserverdisconnected',()=>{placaOk=false;cmdCh=null;pintarEstados();setTimeout(reconectarPlaca,1000)});
   await enlazarPlaca();
@@ -212,7 +405,7 @@ async function reconectarPlaca(){
  try{
   if(!navigator.bluetooth||!navigator.bluetooth.getDevices)return;
   const id=localStorage.getItem('placaId');const ds=await navigator.bluetooth.getDevices();
-  placa=ds.find(d=>d.id===id)||ds.find(d=>(d.name||'').startsWith('BT Keyboard'));
+  placa=ds.find(d=>d.id===id)||ds.find(d=>/^(Mind Search|BT Keyboard)/.test(d.name||''));
   if(!placa)return;
   placa.addEventListener('gattserverdisconnected',()=>{placaOk=false;cmdCh=null;pintarEstados();setTimeout(reconectarPlaca,1000)});
   reconectarPlaca();
@@ -223,12 +416,49 @@ async function mandarComando(txt){
  if(cmdCh.writeValueWithResponse)await cmdCh.writeValueWithResponse(b);else await cmdCh.writeValue(b);
 }
 const MOTIVO={bt:'Espectador NO conectado por Bluetooth',ocupado:'Todavía estaba escribiendo la anterior',vacio:'Palabra vacía'};
+// Telequinesis: "subir 5", "bajar", "pausa", "silencio", "siguiente", "anterior", "foto 2"
+function ordenTele(l){
+ const t=limpiar(l).toLowerCase(),n=parseInt((t.match(/\d+/)||[])[0]||'0');
+ if(/^(sil|mut)/.test(t))return['MU',1];
+ if(/^(sig|prox|adel)/.test(t))return['NX',1];
+ if(/^(ant|atr|vol)/.test(t))return['PV',1];
+ if(/^(pau|play|para|segu|rep)/.test(t))return['PP',1];
+ if(/^(fot|clic|sac)/.test(t))return['FO',n||1];
+ if(/^(baj|men|-)/.test(t))return['VD',n||PASOS];
+ if(/^(sub|mas|\+)/.test(t))return['VU',n||PASOS];
+ return null;
+}
+// Calculadora: con "Número final", lo que escribís es el total que ves en su pantalla
+function ordenCalc(l){
+ const t=l.replace(/[xX]/g,'*').replace(/[^0-9+\-*\/=]/g,'');
+ if(OBJ&&/^\d+$/.test(t)){const d=BigInt(OBJ)-BigInt(t);return(d>=0n?'+'+d:'-'+(-d))+'='}
+ return t;
+}
+async function tecla(acc,veces){
+ if(!placaOk||!cmdCh){$('res').textContent='Dispositivo no conectado';avisoAbajo('Sin conexión',2500);vibrar([60,80,60]);return}
+ esperando={n:est.n,id:est.id,t:Date.now()};
+ $('res').textContent='Enviando...';
+ try{await mandarComando(['K',acc,veces,acc==='FO'?700:350].join('|'))}
+ catch(e){esperando=null;$('res').textContent='No se pudo mandar: '+e.message;avisoAbajo('No se pudo sincronizar',3000);vibrar([60,80,60])}
+}
+function probar(){
+ const ej={web:'prueba',img:'gato',cum:'14 de marzo',yt:'de musica ligera',map:'Torre Eiffel',msg:'prueba',calc:'',txt:'prueba'};
+ if(M==='tele')return tecla('VU',PASOS);
+ if(M==='cam')return tecla('FO',1);
+ if(M==='calc')return enviar(OBJ?'0':'1+1=');
+ enviar(ej[M]);
+}
 async function enviar(w){
  $('guardado').classList.remove('ver');
+ if(M==='cam'){const o=ordenTele(w);return tecla('FO',o&&o[0]==='FO'?o[1]:1)}
+ if(M==='tele'){const o=ordenTele(w);if(!o){$('res').textContent='Orden no reconocida';avisoAbajo('No se pudo sincronizar',2000);return}return tecla(o[0],o[1])}
  if(!placaOk||!cmdCh){$('res').textContent='Dispositivo no conectado';avisoAbajo('Sin conexión',2500);vibrar([60,80,60]);return}
+ let modoPlaca=M;
+ if(M==='calc'){w=ordenCalc(w);if(!w)return}
+ else{w=limpiar(w);if(!w)return;if(M==='yt'||M==='map'||M==='msg')modoPlaca='ent'}
  $('res').textContent='Enviando "'+w+'"...';
  esperando={n:est.n,id:est.id,t:Date.now()};
- try{await mandarComando(['E',M,IP?1:0,NAV?1:0,BAR,Math.round(CARGA*1000),w].join('|'))}
+ try{await mandarComando(['E',modoPlaca,IP?1:0,NAV?1:0,BAR,Math.round(CARGA*1000),w].join('|'))}
  catch(e){esperando=null;$('res').textContent='No se pudo mandar: '+e.message;avisoAbajo('No se pudo sincronizar',3000);vibrar([60,80,60])}
 }
 function alEstado(t){
@@ -416,5 +646,6 @@ async function reconocer(st){
 }
 
 pintar();pintarEstados();
+try{if(!localStorage.getItem('vistoAyuda'))abrirAyuda()}catch(e){}
 setInterval(()=>{if($('ajustes').style.display==='flex')pintarEstados()},1500);
 </script></body></html>
