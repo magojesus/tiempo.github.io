@@ -18,11 +18,6 @@ Config file written to: /home/runner/.arduino15/arduino-cli.yaml
 Downloading index: library_index.tar.bz2 0 B / 4.53 MiB    0.00%Downloading index: library_index.tar.bz2 downloaded
 Downloading index: package_index.tar.bz2 0 B / 112.61 KiB    0.00%Downloading index: package_index.tar.bz2 downloaded
 Downloading index: package_esp32_index.json 0 B / 720.12 KiB    0.00%Downloading index: package_esp32_index.json downloaded
-Downloading missing tool builtin:serial-monitor@0.15.0...
-builtin:serial-monitor@0.15.0 0 B / 2.33 MiB    0.00%builtin:serial-monitor@0.15.0 downloaded
-Installing builtin:serial-monitor@0.15.0...
-Skipping tool configuration....
-builtin:serial-monitor@0.15.0 installed
 Downloading missing tool builtin:ctags@5.8-arduino12...
 builtin:ctags@5.8-arduino12 0 B / 555.43 KiB    0.00%builtin:ctags@5.8-arduino12 downloaded
 Installing builtin:ctags@5.8-arduino12...
@@ -43,39 +38,44 @@ Downloading missing tool builtin:serial-discovery@1.5.2...
 Installing builtin:serial-discovery@1.5.2...
 Skipping tool configuration....
 builtin:serial-discovery@1.5.2 installed
+Downloading missing tool builtin:serial-monitor@0.15.0...
+builtin:serial-monitor@0.15.0 0 B / 2.33 MiB    0.00%builtin:serial-monitor@0.15.0 downloaded
+Installing builtin:serial-monitor@0.15.0...
+Skipping tool configuration....
+builtin:serial-monitor@0.15.0 installed
 Downloading index: package_index.tar.bz2 0 B / 112.61 KiB    0.00%Downloading index: package_index.tar.bz2 downloaded
 Downloading index: package_esp32_index.json 0 B / 720.12 KiB    0.00%Downloading index: package_esp32_index.json downloaded
-+ arduino-cli core install esp32:esp32
++ for v in 3.3.13 3.3.12 3.3.11 3.3.10 3.3.9 3.3.8 3.3.7
++ arduino-cli core install esp32:esp32@3.3.13
 Downloading packages...
-esp32:esp-x32@2512 0 B / 318.36 MiB    0.00%esp32:esp-x32@2512 0 B / 318.36 MiB    0.00%esp32:esp-x32@2512 55.42 MiB / 318.36 MiB   17.41% 00m01sesp32:esp-x32@2512 107.10 MiB / 318.36 MiB   33.64% 00m01sesp32:esp-x32@2512 152.17 MiB / 318.36 MiB   47.80%esp32:esp-x32@2512 193.05 MiB / 318.36 MiB   60.64%esp32:esp-x32@2512 193.05 MiB / 318.36 MiB   60.64%esp32:esp-x32@2512 246.03 MiB / 318.36 MiB   77.28%esp32:esp-x32@2512 283.62 MiB / 318.36 MiB   89.09%esp32:esp-x32@2512 downloaded
+esp32:esp-x32@2610 0 B / 137.00 MiB    0.00%esp32:esp-x32@2610 0 B / 137.00 MiB    0.00%esp32:esp-x32@2610 40.00 MiB / 137.00 MiB   29.20%esp32:esp-x32@2610 90.00 MiB / 137.00 MiB   65.69%esp32:esp-x32@2610 downloaded
 esp32:xtensa-esp-elf-gdb@17.1_20260402 0 B / 40.68 MiB    0.00%esp32:xtensa-esp-elf-gdb@17.1_20260402 downloaded
-esp32:esp-rv32@2512 0 B / 784.13 MiB    0.00%esp32:esp-rv32@2512 0 B / 784.13 MiB    0.00%esp32:esp-rv32@2512 49.26 MiB / 784.13 MiB    6.28% 00m05sesp32:esp-rv32@2512 98.36 MiB / 784.13 MiB   12.54% 00m03sesp32:esp-rv32@2512 151.07 MiB / 784.13 MiB   19.27% 00m03sesp32:esp-rv32@2512 201.16 MiB / 784.13 MiB   25.65% 00m02sesp32:esp-rv32@2512 201.16 MiB / 784.13 MiB   25.65% 00m02sesp32:esp-rv32@2512 230.66 MiB / 784.13 MiB   29.42% 00m02sesp32:esp-rv32@2512 251.73 MiB / 784.13 MiB   32.10% 00m03sesp32:esp-rv32@2512 292.04 MiB / 784.13 MiB   37.24% 00m02sesp32:esp-rv32@2512 336.03 MiB / 784.13 MiB   42.85% 00m02sesp32:esp-rv32@2512 336.03 MiB / 784.13 MiB   42.85% 00m02sesp32:esp-rv32@2512 384.90 MiB / 784.13 MiB   49.09% 00m02sesp32:esp-rv32@2512 436.66 MiB / 784.13 MiB   55.69% 00m01sesp32:esp-rv32@2512 464.97 MiB / 784.13 MiB   59.30% 00m01sesp32:esp-rv32@2512 519.08 MiB / 784.13 MiB   66.20% 00m01sesp32:esp-rv32@2512 519.08 MiB / 784.13 MiB   66.20% 00m01sesp32:esp-rv32@2512 552.87 MiB / 784.13 MiB   70.51% 00m01sesp32:esp-rv32@2512 594.11 MiB / 784.13 MiB   75.77%esp32:esp-rv32@2512 646.29 MiB / 784.13 MiB   82.42%esp32:esp-rv32@2512 700.89 MiB / 784.13 MiB   89.38%esp32:esp-rv32@2512 700.89 MiB / 784.13 MiB   89.38%esp32:esp-rv32@2512 753.69 MiB / 784.13 MiB   96.12%esp32:esp-rv32@2512 downloaded
+esp32:esp-rv32@2610 0 B / 175.10 MiB    0.00%esp32:esp-rv32@2610 0 B / 175.10 MiB    0.00%esp32:esp-rv32@2610 50.00 MiB / 175.10 MiB   28.56%esp32:esp-rv32@2610 98.52 MiB / 175.10 MiB   56.26%esp32:esp-rv32@2610 142.02 MiB / 175.10 MiB   81.11%esp32:esp-rv32@2610 downloaded
 esp32:riscv32-esp-elf-gdb@17.1_20260402 0 B / 41.05 MiB    0.00%esp32:riscv32-esp-elf-gdb@17.1_20260402 downloaded
 esp32:openocd-esp32@v0.12.0-esp32-20260831 0 B / 2.55 MiB    0.00%esp32:openocd-esp32@v0.12.0-esp32-20260831 downloaded
-esp32:esptool_py@5.3.1 0 B / 79.71 MiB    0.00%esp32:esptool_py@5.3.1 0 B / 79.71 MiB    0.00%esp32:esptool_py@5.3.1 50.67 MiB / 79.71 MiB   63.57%esp32:esptool_py@5.3.1 downloaded
+esp32:esptool_py@5.3.1 0 B / 79.71 MiB    0.00%esp32:esptool_py@5.3.1 0 B / 79.71 MiB    0.00%esp32:esptool_py@5.3.1 downloaded
 esp32:mkspiffs@0.2.3 0 B / 49.46 KiB    0.00%esp32:mkspiffs@0.2.3 downloaded
 esp32:mklittlefs@4.0.2-db0513a 0 B / 52.73 KiB    0.00%esp32:mklittlefs@4.0.2-db0513a downloaded
 arduino:dfu-util@0.11.0-arduino5 0 B / 2.18 MiB    0.00%arduino:dfu-util@0.11.0-arduino5 downloaded
-esp32:esp32s31-libs@4.0.0 0 B / 89.25 MiB    0.00%esp32:esp32s31-libs@4.0.0 0 B / 89.25 MiB    0.00%esp32:esp32s31-libs@4.0.0 40.08 MiB / 89.25 MiB   44.91%esp32:esp32s31-libs@4.0.0 downloaded
-esp32:esp32-libs@4.0.0 0 B / 44.94 MiB    0.00%esp32:esp32-libs@4.0.0 downloaded
-esp32:esp32c3-libs@4.0.0 0 B / 67.86 MiB    0.00%esp32:esp32c3-libs@4.0.0 0 B / 67.86 MiB    0.00%esp32:esp32c3-libs@4.0.0 downloaded
-esp32:esp32c5-libs@4.0.0 0 B / 92.09 MiB    0.00%esp32:esp32c5-libs@4.0.0 0 B / 92.09 MiB    0.00%esp32:esp32c5-libs@4.0.0 40.84 MiB / 92.09 MiB   44.35%esp32:esp32c5-libs@4.0.0 downloaded
-esp32:esp32c6-libs@4.0.0 0 B / 74.89 MiB    0.00%esp32:esp32c6-libs@4.0.0 0 B / 74.89 MiB    0.00%esp32:esp32c6-libs@4.0.0 downloaded
-esp32:esp32h2-libs@4.0.0 0 B / 71.52 MiB    0.00%esp32:esp32h2-libs@4.0.0 0 B / 71.52 MiB    0.00%esp32:esp32h2-libs@4.0.0 48.50 MiB / 71.52 MiB   67.81%esp32:esp32h2-libs@4.0.0 downloaded
-esp32:esp32p4-libs@4.0.0 0 B / 104.44 MiB    0.00%esp32:esp32p4-libs@4.0.0 0 B / 104.44 MiB    0.00%esp32:esp32p4-libs@4.0.0 54.00 MiB / 104.44 MiB   51.70%esp32:esp32p4-libs@4.0.0 downloaded
-esp32:esp32p4_es-libs@4.0.0 0 B / 105.45 MiB    0.00%esp32:esp32p4_es-libs@4.0.0 0 B / 105.45 MiB    0.00%esp32:esp32p4_es-libs@4.0.0 51.25 MiB / 105.45 MiB   48.60%esp32:esp32p4_es-libs@4.0.0 57.12 MiB / 105.45 MiB   54.17%esp32:esp32p4_es-libs@4.0.0 85.87 MiB / 105.45 MiB   81.44%esp32:esp32p4_es-libs@4.0.0 downloaded
-esp32:esp32s2-libs@4.0.0 0 B / 42.76 MiB    0.00%esp32:esp32s2-libs@4.0.0 downloaded
-esp32:esp32s3-libs@4.0.0 0 B / 78.76 MiB    0.00%esp32:esp32s3-libs@4.0.0 0 B / 78.76 MiB    0.00%esp32:esp32s3-libs@4.0.0 downloaded
-esp32:esp32@4.0.0 0 B / 59.87 MiB    0.00%esp32:esp32@4.0.0 0 B / 59.87 MiB    0.00%esp32:esp32@4.0.0 downloaded
-Installing esp32:esp-x32@2512...
+esp32:esp32-libs@3.3.13 0 B / 46.26 MiB    0.00%esp32:esp32-libs@3.3.13 0 B / 46.26 MiB    0.00%esp32:esp32-libs@3.3.13 downloaded
+esp32:esp32c3-libs@3.3.13 0 B / 57.82 MiB    0.00%esp32:esp32c3-libs@3.3.13 0 B / 57.82 MiB    0.00%esp32:esp32c3-libs@3.3.13 downloaded
+esp32:esp32c5-libs@3.3.13 0 B / 75.46 MiB    0.00%esp32:esp32c5-libs@3.3.13 0 B / 75.46 MiB    0.00%esp32:esp32c5-libs@3.3.13 downloaded
+esp32:esp32c6-libs@3.3.13 0 B / 66.23 MiB    0.00%esp32:esp32c6-libs@3.3.13 0 B / 66.23 MiB    0.00%esp32:esp32c6-libs@3.3.13 downloaded
+esp32:esp32h2-libs@3.3.13 0 B / 62.25 MiB    0.00%esp32:esp32h2-libs@3.3.13 0 B / 62.25 MiB    0.00%esp32:esp32h2-libs@3.3.13 20.00 MiB / 62.25 MiB   32.13%esp32:esp32h2-libs@3.3.13 downloaded
+esp32:esp32p4-libs@3.3.13 0 B / 93.43 MiB    0.00%esp32:esp32p4-libs@3.3.13 0 B / 93.43 MiB    0.00%esp32:esp32p4-libs@3.3.13 49.50 MiB / 93.43 MiB   52.98%esp32:esp32p4-libs@3.3.13 downloaded
+esp32:esp32p4_es-libs@3.3.13 0 B / 93.05 MiB    0.00%esp32:esp32p4_es-libs@3.3.13 0 B / 93.05 MiB    0.00%esp32:esp32p4_es-libs@3.3.13 40.00 MiB / 93.05 MiB   42.99%esp32:esp32p4_es-libs@3.3.13 downloaded
+esp32:esp32s2-libs@3.3.13 0 B / 44.26 MiB    0.00%esp32:esp32s2-libs@3.3.13 0 B / 44.26 MiB    0.00%esp32:esp32s2-libs@3.3.13 downloaded
+esp32:esp32s3-libs@3.3.13 0 B / 83.84 MiB    0.00%esp32:esp32s3-libs@3.3.13 0 B / 83.84 MiB    0.00%esp32:esp32s3-libs@3.3.13 40.02 MiB / 83.84 MiB   47.73%esp32:esp32s3-libs@3.3.13 downloaded
+esp32:esp32@3.3.13 0 B / 49.33 MiB    0.00%esp32:esp32@3.3.13 0 B / 49.33 MiB    0.00%esp32:esp32@3.3.13 downloaded
+Installing esp32:esp-x32@2610...
 Skipping tool configuration....
-esp32:esp-x32@2512 installed
+esp32:esp-x32@2610 installed
 Installing esp32:xtensa-esp-elf-gdb@17.1_20260402...
 Skipping tool configuration....
 esp32:xtensa-esp-elf-gdb@17.1_20260402 installed
-Installing esp32:esp-rv32@2512...
+Installing esp32:esp-rv32@2610...
 Skipping tool configuration....
-esp32:esp-rv32@2512 installed
+esp32:esp-rv32@2610 installed
 Installing esp32:riscv32-esp-elf-gdb@17.1_20260402...
 Skipping tool configuration....
 esp32:riscv32-esp-elf-gdb@17.1_20260402 installed
@@ -94,39 +94,37 @@ esp32:mklittlefs@4.0.2-db0513a installed
 Installing arduino:dfu-util@0.11.0-arduino5...
 Skipping tool configuration....
 arduino:dfu-util@0.11.0-arduino5 installed
-Installing esp32:esp32s31-libs@4.0.0...
+Installing esp32:esp32-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32s31-libs@4.0.0 installed
-Installing esp32:esp32-libs@4.0.0...
+esp32:esp32-libs@3.3.13 installed
+Installing esp32:esp32c3-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32-libs@4.0.0 installed
-Installing esp32:esp32c3-libs@4.0.0...
+esp32:esp32c3-libs@3.3.13 installed
+Installing esp32:esp32c5-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32c3-libs@4.0.0 installed
-Installing esp32:esp32c5-libs@4.0.0...
+esp32:esp32c5-libs@3.3.13 installed
+Installing esp32:esp32c6-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32c5-libs@4.0.0 installed
-Installing esp32:esp32c6-libs@4.0.0...
+esp32:esp32c6-libs@3.3.13 installed
+Installing esp32:esp32h2-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32c6-libs@4.0.0 installed
-Installing esp32:esp32h2-libs@4.0.0...
+esp32:esp32h2-libs@3.3.13 installed
+Installing esp32:esp32p4-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32h2-libs@4.0.0 installed
-Installing esp32:esp32p4-libs@4.0.0...
+esp32:esp32p4-libs@3.3.13 installed
+Installing esp32:esp32p4_es-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32p4-libs@4.0.0 installed
-Installing esp32:esp32p4_es-libs@4.0.0...
+esp32:esp32p4_es-libs@3.3.13 installed
+Installing esp32:esp32s2-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32p4_es-libs@4.0.0 installed
-Installing esp32:esp32s2-libs@4.0.0...
+esp32:esp32s2-libs@3.3.13 installed
+Installing esp32:esp32s3-libs@3.3.13...
 Skipping tool configuration....
-esp32:esp32s2-libs@4.0.0 installed
-Installing esp32:esp32s3-libs@4.0.0...
-Skipping tool configuration....
-esp32:esp32s3-libs@4.0.0 installed
-Installing platform esp32:esp32@4.0.0...
+esp32:esp32s3-libs@3.3.13 installed
+Installing platform esp32:esp32@3.3.13...
 Skipping platform configuration....
-Platform esp32:esp32@4.0.0 installed
+Platform esp32:esp32@3.3.13 installed
++ break
 + arduino-cli lib update-index
 Downloading index: library_index.tar.bz2 0 B / 4.53 MiB    0.00%Downloading index: library_index.tar.bz2 downloaded
 + arduino-cli lib install NimBLE-Arduino@2.5.2
@@ -138,48 +136,12 @@ Installed NimBLE-Arduino@2.5.2
 + cp -r placa/libs/HijelHID_BLEKeyboard /home/runner/Arduino/libraries/
 + arduino-cli core list
 ID          Installed Latest Name
-esp32:esp32 4.0.0     4.0.0  esp32
+esp32:esp32 3.3.13    4.0.0  esp32
 
 + arduino-cli lib list
 Name                 Installed Available    Location Description
 HijelHID_BLEKeyboard 0.6.0     -            user     -
 NimBLE-Arduino       2.5.2     -            user     -
 
-/home/runner/work/tiempo.github.io/tiempo.github.io/placa/foto_magica/foto_magica.ino: In function 'void appSetup()':
-/home/runner/work/tiempo.github.io/tiempo.github.io/placa/foto_magica/foto_magica.ino:458:33: error: no matching function for call to 'NimBLEDevice::startAdvertising()'
-  458 |   NimBLEDevice::startAdvertising();
-      |   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
-/home/runner/work/tiempo.github.io/tiempo.github.io/placa/foto_magica/foto_magica.ino:458:33: note: there is 1 candidate
-In file included from /home/runner/Arduino/libraries/HijelHID_BLEKeyboard/src/HijelHID_BLEKeyboard.h:36,
-                 from /home/runner/work/tiempo.github.io/tiempo.github.io/placa/foto_magica/foto_magica.ino:68:
-/home/runner/Arduino/libraries/NimBLE-Arduino/src/NimBLEDevice.h:193:34: note: candidate 1: 'static bool NimBLEDevice::startAdvertising(uint8_t, int, int)'
-  193 |     static bool                  startAdvertising(uint8_t instId, int duration = 0, int maxEvents = 0);
-      |                                  ^~~~~~~~~~~~~~~~
-/home/runner/Arduino/libraries/NimBLE-Arduino/src/NimBLEDevice.h:193:34: note: candidate expects 3 arguments, 0 provided
-/home/runner/work/tiempo.github.io/tiempo.github.io/placa/foto_magica/foto_magica.ino: In function 'void appLoop()':
-/home/runner/work/tiempo.github.io/tiempo.github.io/placa/foto_magica/foto_magica.ino:542:37: error: no matching function for call to 'NimBLEDevice::startAdvertising()'
-  542 |       NimBLEDevice::startAdvertising();
-      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
-/home/runner/work/tiempo.github.io/tiempo.github.io/placa/foto_magica/foto_magica.ino:542:37: note: there is 1 candidate
-/home/runner/Arduino/libraries/NimBLE-Arduino/src/NimBLEDevice.h:193:34: note: candidate 1: 'static bool NimBLEDevice::startAdvertising(uint8_t, int, int)'
-  193 |     static bool                  startAdvertising(uint8_t instId, int duration = 0, int maxEvents = 0);
-      |                                  ^~~~~~~~~~~~~~~~
-/home/runner/Arduino/libraries/NimBLE-Arduino/src/NimBLEDevice.h:193:34: note: candidate expects 3 arguments, 0 provided
-
-[92mUsed library[0m         [92mVersion[0m [90mPath[0m
-[93mWiFi[0m                 4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/WiFi[0m
-[93mNetworking[0m           4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/Network[0m
-[93mWebServer[0m            4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/WebServer[0m
-[93mFS[0m                   4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/FS[0m
-[93mDNSServer[0m            4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/DNSServer[0m
-[93mESP32 Async UDP[0m      4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/AsyncUDP[0m
-[93mPreferences[0m          4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/Preferences[0m
-[93mHijelHID_BLEKeyboard[0m 0.6.0   [90m/home/runner/Arduino/libraries/HijelHID_BLEKeyboard[0m
-[93mNimBLE-Arduino[0m       2.5.2   [90m/home/runner/Arduino/libraries/NimBLE-Arduino[0m
-[93mNetworkClientSecure[0m  4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/NetworkClientSecure[0m
-[93mHTTPClient[0m           4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/HTTPClient[0m
-[93mHash[0m                 4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0/libraries/Hash[0m
-
-[92mUsed platform[0m [92mVersion[0m [90mPath[0m
-[93mesp32:esp32[0m   4.0.0   [90m/home/runner/.arduino15/packages/esp32/hardware/esp32/4.0.0[0m
-Error during build: exit status 1
+Sketch uses 1466465 bytes (46%) of program storage space. Maximum is 3145728 bytes.
+Global variables use 56276 bytes (17%) of dynamic memory, leaving 271404 bytes for local variables. Maximum is 327680 bytes.
