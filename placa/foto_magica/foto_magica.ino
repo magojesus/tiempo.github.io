@@ -37,6 +37,10 @@
    Necesita internet: en los ajustes secretos poné el WiFi del lugar o
    el hotspot de tu celu (que queda en el bolsillo).
 
+   BOTÓN: desde la app "cargás" un efecto (una palabra, subir volumen,
+   sacar foto...) y lo disparás cuando quieras apretando el botón BOOT
+   de la placa o un pulsador entre GPIO 4 y GND.
+
    EFECTOS (se eligen en la app):
      Google, Fotos, Cumpleaños famoso, YouTube, Mapa, Mensaje,
      Calculadora, Solo texto, Telequinesis (volumen / play) y Foto fantasma.
@@ -456,11 +460,47 @@ void appSetup() {
 }
 
 // Procesa lo que mandó la app
+// ---- BOTÓN DEL DISPOSITIVO: dispara lo que dejaste "cargado" desde la app ----
+// Sirve el botón BOOT de la placa (GPIO 9) o un pulsador externo entre GPIO 4 y GND.
+#define BOTON_BOOT 9
+#define BOTON_EXT  4
+String   armado = "";              // comando guardado (E|... o K|...)
+bool     botonAntes = false;
+uint32_t botonT = 0;
+void procesarComando(const String &c);
+
+void botonSetup() {
+  pinMode(BOTON_BOOT, INPUT_PULLUP);
+  pinMode(BOTON_EXT, INPUT_PULLUP);
+  armado = prefs.getString("arm", "");
+}
+void botonLoop() {
+  bool ahora = digitalRead(BOTON_BOOT) == LOW || digitalRead(BOTON_EXT) == LOW;
+  if (ahora != botonAntes && millis() - botonT > 40) {
+    botonT = millis();
+    botonAntes = ahora;
+    if (ahora && armado.length()) {
+      Serial.printf("Boton: %s\n", armado.c_str());
+      procesarComando(armado);
+    }
+  }
+}
+
 void appProcesar() {
   if (!appHay) return;
   String c = appCmd; appHay = false;
   appN++;
+  procesarComando(c);
+}
+
+void procesarComando(const String &c) {
   if (c == "N") { pedirNuevo = true; return; }
+  if (c.startsWith("A|")) {                     // cargar el botón (A| vacío = descargar)
+    armado = c.substring(2);
+    prefs.putString("arm", armado);
+    appErr = "";
+    return;
+  }
   if (c.startsWith("K|")) {
     if (!teclado.isPaired()) { appErr = "bt"; return; }
     if (hayPendiente) { appErr = "ocupado"; return; }
@@ -505,7 +545,7 @@ void appLoop() {
     appTEst = millis();
     if (fase == 2 && (int32_t)(millis() - listoEn) >= 0) fase = 3;
     String j = "{\"c\":" + String(teclado.isPaired() ? 1 : 0) + ",\"f\":" + String(fase) +
-               ",\"id\":" + String(envioId) + ",\"n\":" + String(appN) + ",\"e\":\"" + appErr + "\"}";
+               ",\"id\":" + String(envioId) + ",\"n\":" + String(appN) + ",\"a\":" + String(armado.length() ? 1 : 0) + ",\"e\":\"" + appErr + "\"}";
     if (j != appUltEst) { appUltEst = j; appEst->setValue(j.c_str()); appEst->notify(); }
   }
 }
@@ -548,6 +588,7 @@ void setup() {
   teclado.begin();
   appSetup();                       // app Mind Search por Bluetooth
   penSetup();                       // lapicera (si está activada en los ajustes)
+  botonSetup();                     // botón para disparar lo cargado
   empezarInternet(20000);           // internet solo si la lapicera está activada
 
   dns.start(53, "*", WiFi.softAPIP());
@@ -586,6 +627,7 @@ void loop() {
   penLoop();
   revisarInternet();
   appLoop();
+  botonLoop();
 
   if (pedirNuevo) {
     pedirNuevo = false;
