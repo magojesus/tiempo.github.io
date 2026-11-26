@@ -16,6 +16,7 @@ jobs:
         run: |
           set -x
           exec > >(tee -a placa_log.txt) 2>&1
+          mkdir -p $HOME/bin
           curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=$HOME/bin sh
           export PATH=$HOME/bin:$PATH
           arduino-cli config init
