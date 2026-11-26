@@ -132,6 +132,12 @@
  <div class="fila"><button onclick="probar()">Probar el efecto</button></div>
  <div id="res" style="font-size:13px;color:#555;margin:6px 0 0"></div>
 
+ <h3>Botón del dispositivo</h3>
+ <div class="estado" id="estArm">Botón sin cargar</div>
+ <div class="ayudita">Dejá cargado un efecto y disparalo cuando quieras apretando el <b>botón del dispositivo</b>, sin tocar tu celular. Mientras tanto podés seguir usando la app normal. Se carga con el <b>efecto elegido arriba</b>.</div>
+ <div class="fila"><input id="armIn" class="num" type="text" placeholder="Qué dispara: palabra u orden (ej: subir 5)"></div>
+ <div class="fila"><button onclick="cargarDesdeAjustes()">Cargar en el botón</button><button onclick="descargarBoton()">Vaciar</button></div>
+
  <h3>Lapicera</h3>
  <div class="estado" id="estL">No conectada</div>
  <button class="grande" id="btnLap" onclick="conectarLapicera()">Conectar lapicera</button>
@@ -245,7 +251,24 @@
   <p><b>Qué pasa:</b> la palabra aparece escrita donde esté el cursor del espectador (en sus Notas, en un buscador, donde sea), sin buscar ni enviar nada.</p>
  </details>
 
- <details><summary>4 · Lapicera</summary>
+ <details><summary>4 · Botón del dispositivo (disparar sin el celu)</summary>
+  <p>Podés dejar un efecto <b>cargado</b> en el dispositivo y dispararlo apretando su <b>botón</b>, en el momento exacto que quieras, con tu celular guardado. Mientras tanto podés seguir usando la app para otros efectos: lo cargado no se borra.</p>
+  <p><b>Cómo cargarlo (dos formas):</b></p>
+  <ol>
+   <li><b>Desde los ajustes secretos:</b> elegí el efecto (por ejemplo Telequinesis), escribí en "Qué dispara" la orden o palabra (<b>subir 5</b>, <b>pausa</b>, <b>Paris</b>…) y tocá <b>"Cargar en el botón"</b>.</li>
+   <li><b>Desde la nota, a escondidas:</b> escribí la línea empezando con un asterisco, por ejemplo <b>*subir 5</b> o <b>*foto</b>, y Enter. No se manda: queda cargada en el botón (con el efecto que esté elegido). Vibra cortito para avisarte.</li>
+  </ol>
+  <p><b>Para dispararlo:</b> apretá el botón del dispositivo. Cada vez que lo apretás se repite (ideal para Telequinesis: un toque sube, otro toque sube más).</p>
+  <p><b>Ejemplos:</b></p>
+  <ul>
+   <li>Telequinesis + <b>*subir 5</b>: el espectador se concentra y vos, con la mano en el bolsillo, apretás el botón.</li>
+   <li>Foto fantasma + <b>*foto</b>: "a la cuenta de 3…" y en el 3 apretás.</li>
+   <li>Google o Fotos + <b>*Paris</b>: dejás la predicción cargada antes del show y la revelás con un toque.</li>
+  </ul>
+  <p>Para borrarlo: "Vaciar" en los ajustes secretos. En los ajustes ves qué quedó cargado.</p>
+ </details>
+
+ <details><summary>5 · Lapicera</summary>
   <ul>
    <li>En los ajustes secretos tocá <b>"Conectar lapicera"</b> y elegí tu lapicera. Tiene que decir <span class="ok">Lapicera lista ✔</span>.</li>
    <li>El espectador escribe en el papel. Cuando deja de escribir unos segundos, la palabra se reconoce y se manda sola con el efecto elegido. Vos no tocás nada.</li>
@@ -256,14 +279,14 @@
   </ul>
  </details>
 
- <details><summary>5 · Entre un espectador y otro</summary>
+ <details><summary>6 · Entre un espectador y otro</summary>
   <ul>
    <li>Al terminar con un espectador, en los ajustes secretos tocá <b>"Nuevo espectador"</b>. Su celular queda desconectado y el dispositivo queda libre para vincular otro.</li>
    <li>El nuevo espectador hace lo mismo: <b>Ajustes › Bluetooth › Mind Search › Vincular</b>.</li>
   </ul>
  </details>
 
- <details><summary>6 · Si algo no anda</summary>
+ <details><summary>7 · Si algo no anda</summary>
   <ul>
    <li><b>"Dispositivo no conectado":</b> fijate que esté prendido y cargado, y tocá "Conectar dispositivo".</li>
    <li><b>"Espectador NO conectado":</b> en su celu, Ajustes › Bluetooth, que "Mind Search" diga <b>Conectado</b>. Si lo había vinculado antes y no conecta: tocá la (i) o el engranaje › <b>Olvidar</b> y vinculalo de nuevo.</li>
@@ -325,7 +348,7 @@ const AYM={
  map:'<b>Mapa:</b> que abra Google Maps y toque el buscador. Escribí el lugar.',
  msg:'<b>Mensaje:</b> que abra un chat y toque la cajita de escribir. Escribí el mensaje: se escribe y se envía solo.',
  calc:'<b>Calculadora:</b> cuando terminen de sumar y toquen =, escribí el total que ves en su pantalla. Su celu completa la cuenta hasta tu número final.',
- tele:'<b>Telequinesis:</b> escribí en la nota <b>subir</b>, <b>bajar</b>, <b>pausa</b>, <b>silencio</b>, <b>siguiente</b> o <b>anterior</b> (y Enter). Ej: <b>subir 5</b>.',
+ tele:'<b>Telequinesis:</b> tip: cargá <b>*subir 5</b> y disparalo con el botón del dispositivo. Escribí en la nota <b>subir</b>, <b>bajar</b>, <b>pausa</b>, <b>silencio</b>, <b>siguiente</b> o <b>anterior</b> (y Enter). Ej: <b>subir 5</b>.',
  cam:'<b>Foto fantasma:</b> que abra la cámara. Tocá Enter u OK en tu nota y la foto se saca sola. <b>foto 3</b> saca tres.',
  txt:'<b>Solo texto:</b> la palabra aparece donde esté su cursor, sin buscar ni enviar.'
 };
@@ -434,13 +457,27 @@ function ordenCalc(l){
  if(OBJ&&/^\d+$/.test(t)){const d=BigInt(OBJ)-BigInt(t);return(d>=0n?'+'+d:'-'+(-d))+'='}
  return t;
 }
-async function tecla(acc,veces){
- if(!placaOk||!cmdCh){$('res').textContent='Dispositivo no conectado';avisoAbajo('Sin conexión',2500);vibrar([60,80,60]);return}
+// Arma el comando para el dispositivo según el efecto elegido (null si no hay nada que mandar)
+function construir(w){
+ if(M==='cam'){const o=ordenTele(w);return 'K|FO|'+(o&&o[0]==='FO'?o[1]:1)+'|700'}
+ if(M==='tele'){const o=ordenTele(w);return o?['K',o[0],o[1],350].join('|'):null}
+ let modoPlaca=M;
+ if(M==='calc'){w=ordenCalc(w);if(!w)return null}
+ else{w=limpiar(w);if(!w)return null;if(M==='yt'||M==='map'||M==='msg')modoPlaca='ent'}
+ return ['E',modoPlaca,IP?1:0,NAV?1:0,BAR,Math.round(CARGA*1000),w].join('|');
+}
+function sinConexion(){
+ if(placaOk&&cmdCh)return false;
+ $('res').textContent='Dispositivo no conectado';avisoAbajo('Sin conexión',2500);vibrar([60,80,60]);return true;
+}
+async function mandarYEsperar(cmd,txt){
+ if(sinConexion())return;
+ $('res').textContent=txt||'Enviando...';
  esperando={n:est.n,id:est.id,t:Date.now()};
- $('res').textContent='Enviando...';
- try{await mandarComando(['K',acc,veces,acc==='FO'?700:350].join('|'))}
+ try{await mandarComando(cmd)}
  catch(e){esperando=null;$('res').textContent='No se pudo mandar: '+e.message;avisoAbajo('No se pudo sincronizar',3000);vibrar([60,80,60])}
 }
+function tecla(acc,veces){return mandarYEsperar(['K',acc,veces,acc==='FO'?700:350].join('|'))}
 function probar(){
  const ej={web:'prueba',img:'gato',cum:'14 de marzo',yt:'de musica ligera',map:'Torre Eiffel',msg:'prueba',calc:'',txt:'prueba'};
  if(M==='tele')return tecla('VU',PASOS);
@@ -448,18 +485,29 @@ function probar(){
  if(M==='calc')return enviar(OBJ?'0':'1+1=');
  enviar(ej[M]);
 }
+// ---- Botón del dispositivo: dejar algo "cargado" y dispararlo con el botón ----
+let ARM_TXT='';try{ARM_TXT=localStorage.getItem('armTxt')||''}catch(e){}
+async function cargarBoton(w){
+ if(sinConexion())return;
+ const c=construir(w);
+ if(!c){$('res').textContent='Nada para cargar';avisoAbajo('No se pudo sincronizar',2000);return}
+ try{await mandarComando('A|'+c);
+  ARM_TXT=NOMBRE_EF[M]+(M==='cam'?'':': '+(M==='calc'?w:limpiar(w)));try{localStorage.setItem('armTxt',ARM_TXT)}catch(e){}
+  $('res').textContent='Cargado en el botón: '+ARM_TXT;avisoAbajo('Guardado ✓',1500);vibrar(40);pintarEstados()}
+ catch(e){$('res').textContent='No se pudo cargar: '+e.message}
+}
+async function descargarBoton(){
+ if(sinConexion())return;
+ try{await mandarComando('A|');ARM_TXT='';try{localStorage.setItem('armTxt','')}catch(e){}pintarEstados()}catch(e){}
+}
+function cargarDesdeAjustes(){cargarBoton($('armIn').value||(M==='cam'?'foto':''))}
+const NOMBRE_EF={web:'Google',img:'Fotos',cum:'Cumpleaños',yt:'YouTube',map:'Mapa',msg:'Mensaje',calc:'Calculadora',tele:'Telequinesis',cam:'Foto fantasma',txt:'Solo texto'};
 async function enviar(w){
  $('guardado').classList.remove('ver');
- if(M==='cam'){const o=ordenTele(w);return tecla('FO',o&&o[0]==='FO'?o[1]:1)}
- if(M==='tele'){const o=ordenTele(w);if(!o){$('res').textContent='Orden no reconocida';avisoAbajo('No se pudo sincronizar',2000);return}return tecla(o[0],o[1])}
- if(!placaOk||!cmdCh){$('res').textContent='Dispositivo no conectado';avisoAbajo('Sin conexión',2500);vibrar([60,80,60]);return}
- let modoPlaca=M;
- if(M==='calc'){w=ordenCalc(w);if(!w)return}
- else{w=limpiar(w);if(!w)return;if(M==='yt'||M==='map'||M==='msg')modoPlaca='ent'}
- $('res').textContent='Enviando "'+w+'"...';
- esperando={n:est.n,id:est.id,t:Date.now()};
- try{await mandarComando(['E',modoPlaca,IP?1:0,NAV?1:0,BAR,Math.round(CARGA*1000),w].join('|'))}
- catch(e){esperando=null;$('res').textContent='No se pudo mandar: '+e.message;avisoAbajo('No se pudo sincronizar',3000);vibrar([60,80,60])}
+ if(/^\s*\*/.test(w))return cargarBoton(w.replace(/^\s*\*/,''));   // "*palabra" = cargar en el botón
+ const c=construir(w);
+ if(!c){if(M==='tele'){$('res').textContent='Orden no reconocida';avisoAbajo('No se pudo sincronizar',2000)}return}
+ mandarYEsperar(c,'Enviando...');
 }
 function alEstado(t){
  try{est=JSON.parse(t)}catch(e){return}
@@ -485,6 +533,7 @@ function pintarEstados(){
  if(!hayBT())p.innerHTML='<span class="mal">Este navegador no tiene Bluetooth.</span> Android: Chrome. iPhone: app <b>Bluefy</b>.';
  else if(!placaOk)p.innerHTML='<span class="mal">Dispositivo no conectado</span> (prendelo y tocá Conectar)';
  else p.innerHTML='<span class="ok">Dispositivo conectado ✔</span><br>'+(est.c?'<span class="ok">Espectador conectado ✔</span>':'<span class="mal">Espectador NO conectado</span>');
+ $('estArm').innerHTML=(placaOk&&est.a)?('<span class="ok">Cargado ✔</span> '+(ARM_TXT||'')):'Botón sin cargar';
  $('btnPlaca').textContent=placaOk?'Cambiar de dispositivo':'Conectar dispositivo';
  // puntito casi invisible en "Notas": verde si todo está listo
  $('punto').style.background=(placaOk&&est.c)?'#e8e8e8':'transparent';
