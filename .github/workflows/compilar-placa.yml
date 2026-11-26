@@ -22,7 +22,7 @@ jobs:
           arduino-cli config init
           arduino-cli config add board_manager.additional_urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
           arduino-cli core update-index
-          arduino-cli core install esp32:esp32
+          for v in 3.3.13 3.3.12 3.3.11 3.3.10 3.3.9 3.3.8 3.3.7; do arduino-cli core install esp32:esp32@$v && break; done
           arduino-cli lib update-index
           arduino-cli lib install "NimBLE-Arduino@2.5.2" || arduino-cli lib install "NimBLE-Arduino"
           mkdir -p $HOME/Arduino/libraries
