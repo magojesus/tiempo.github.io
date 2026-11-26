@@ -21,8 +21,8 @@ Daemon will be stopped at the end of the build
 > Task :app:checkReleaseDuplicateClasses
 > Task :app:buildKotlinToolingMetadata
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :app:checkReleaseAarMetadata
 > Task :app:generateReleaseResValues
+> Task :app:checkReleaseAarMetadata
 > Task :app:mapReleaseSourceSetPaths
 > Task :app:generateReleaseResources
 > Task :app:packageReleaseResources
@@ -33,25 +33,25 @@ Daemon will be stopped at the end of the build
 > Task :app:processReleaseMainManifest
 > Task :app:processReleaseManifest
 > Task :app:desugarReleaseFileDependencies
+> Task :app:processReleaseManifestForPackage
 > Task :app:javaPreCompileRelease
 > Task :app:mergeReleaseStartupProfile
+> Task :app:processReleaseResources
+> Task :app:mergeExtDexRelease
 > Task :app:mergeReleaseArtProfile
 > Task :app:mergeReleaseShaders
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
-> Task :app:processReleaseManifestForPackage
 > Task :app:compressReleaseAssets
 > Task :app:extractReleaseVersionControlInfo
 > Task :app:extractProguardFiles
-> Task :app:processReleaseResources
 > Task :app:collectReleaseDependencies
-> Task :app:mergeExtDexRelease
 > Task :app:sdkReleaseDependencyData
+> Task :app:optimizeReleaseResources
 > Task :app:writeReleaseAppMetadata
 > Task :app:writeReleaseSigningConfigVersions
 > Task :app:processApplicationManifestReleaseForBundle
-> Task :app:optimizeReleaseResources
 > Task :app:configureReleaseDependencies
 > Task :app:preDebugBuild UP-TO-DATE
 > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
@@ -63,8 +63,8 @@ Daemon will be stopped at the end of the build
 > Task :app:bundleReleaseResources
 > Task :app:packageDebugResources
 > Task :app:createDebugCompatibleScreenManifests
-> Task :app:extractDeepLinksDebug
 > Task :app:parseDebugLocalResources
+> Task :app:extractDeepLinksDebug
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
 > Task :app:processDebugManifestForPackage
@@ -79,12 +79,17 @@ Daemon will be stopped at the end of the build
 > Task :app:checkDebugDuplicateClasses
 > Task :app:mergeDebugJniLibFolders
 > Task :app:processDebugResources
-> Task :app:mergeLibDexDebug
 > Task :app:mergeExtDexDebug
 > Task :app:mergeDebugNativeLibs NO-SOURCE
+> Task :app:mergeLibDexDebug
 > Task :app:stripDebugDebugSymbols NO-SOURCE
 
 > Task :app:compileReleaseKotlin
+w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:68:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:69:26 'var systemUiVisibility: Int' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:69:52 'static field SYSTEM_UI_FLAG_LIGHT_STATUS_BAR: Int' is deprecated. Deprecated in Java.
+
+> Task :app:compileDebugKotlin
 w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:68:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:69:26 'var systemUiVisibility: Int' is deprecated. Deprecated in Java.
 w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:69:52 'static field SYSTEM_UI_FLAG_LIGHT_STATUS_BAR: Int' is deprecated. Deprecated in Java.
@@ -93,14 +98,8 @@ w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/ma
 > Task :app:compileReleaseJavaWithJavac NO-SOURCE
 > Task :app:dexBuilderRelease
 > Task :app:mergeReleaseGlobalSynthetics
-
-> Task :app:compileDebugKotlin
-w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:68:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:69:26 'var systemUiVisibility: Int' is deprecated. Deprecated in Java.
-w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/main/java/com/magojesus/mindsearch/MainActivity.kt:69:52 'static field SYSTEM_UI_FLAG_LIGHT_STATUS_BAR: Int' is deprecated. Deprecated in Java.
-
-> Task :app:mergeDexRelease
 > Task :app:generateReleaseLintVitalReportModel
+> Task :app:mergeDexRelease
 > Task :app:compileReleaseArtProfile
 > Task :app:processReleaseJavaRes
 > Task :app:compileDebugJavaWithJavac NO-SOURCE
@@ -127,7 +126,7 @@ w: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/app/src/ma
 > Task :app:produceReleaseBundleIdeListingFile
 > Task :app:createReleaseBundleListingFileRedirect
 > Task :app:bundleRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1795655686827.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1795656428088.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/tiempo.github.io/tiempo.github.io/android/build/reports/problems/problems-report.html
 
@@ -137,5 +136,5 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 1m 51s
+BUILD SUCCESSFUL in 1m 45s
 86 actionable tasks: 86 executed
